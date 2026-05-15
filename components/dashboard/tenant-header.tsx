@@ -10,7 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe, Eye } from "lucide-react";
+import { Globe } from "lucide-react";
+import { SeenlyMark } from "@/components/icons/seenly-mark";
 import { NotificationBell } from "./notification-bell";
 import { useOnboardingState } from "@/components/onboarding/onboarding-gate";
 import { ActiveRunPill } from "./active-run-pill";
@@ -28,9 +29,7 @@ export function TenantHeader() {
             href="/dashboard"
             className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-primary shrink-0"
           >
-            <span className="inline-flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Eye className="size-4" strokeWidth={2.5} />
-            </span>
+            <SeenlyMark className="size-7 text-primary" />
             Seenly
           </Link>
           <ActiveRunPill />

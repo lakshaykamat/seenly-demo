@@ -1,4 +1,4 @@
-import { Eye } from "lucide-react";
+import { SeenlyMark } from "@/components/icons/seenly-mark";
 import { OnboardingLanding } from "@/components/onboarding/onboarding-landing";
 
 export const dynamic = "force-dynamic";
@@ -14,9 +14,7 @@ export default function OnboardingPage() {
           href="/onboarding"
           className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground"
         >
-          <span className="inline-flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <Eye className="size-4" strokeWidth={2.5} />
-          </span>
+          <SeenlyMark className="size-7 text-primary" />
           Seenly
         </a>
         <a
@@ -47,9 +45,7 @@ function Footer() {
     <footer className="relative z-10 border-t border-border/60 bg-background/30 backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row md:px-10">
         <div className="flex items-center gap-2">
-          <span className="inline-flex size-5 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <Eye className="size-3" strokeWidth={2.5} />
-          </span>
+          <SeenlyMark className="size-5 text-primary" />
           <span className="font-medium text-foreground/80">Seenly</span>
           <span className="text-muted-foreground/60">© 2026</span>
         </div>
