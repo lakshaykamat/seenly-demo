@@ -121,7 +121,7 @@ export default function DashboardPage() {
       ? round1(sentiment - prevDetail.scores.sentiment_score)
       : undefined;
 
-  const recentRuns = (runs ?? []).slice(0, 5);
+  const recentRuns = (runs ?? []).slice(0, 2);
 
   const topRecs = useMemo(() => {
     if (!recommendations) return [];

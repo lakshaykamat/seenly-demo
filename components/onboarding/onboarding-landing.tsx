@@ -80,9 +80,9 @@ export function OnboardingLanding() {
         </span>
       </div>
 
-      <h1 className="mt-6 text-foreground font-semibold leading-[1.05] tracking-tight text-center text-[clamp(2.25rem,5vw,4rem)]">
+      <h1 className="mt-6 text-foreground font-display font-normal leading-[1.05] tracking-tight text-center text-[clamp(2.5rem,5.5vw,4.5rem)]">
         How does AI{" "}
-        <span className="text-primary">recommend</span>
+        <span className="text-primary italic">recommend</span>
         <br className="hidden sm:block" />
         <span className="sm:hidden"> </span>
         your brand?
