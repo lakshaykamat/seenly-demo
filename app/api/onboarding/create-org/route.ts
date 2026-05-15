@@ -105,7 +105,10 @@ export async function POST(request: Request) {
   // and existing profile with null org_id (normal onboarding flow)
   const { error: profileError } = await admin
     .from("profiles")
-    .upsert({ id: user.id, org_id: org.id, role: "admin" }, { onConflict: "id" });
+    .upsert(
+      { id: user.id, org_id: org.id, role: "admin" },
+      { onConflict: "id" }
+    );
 
   if (profileError) {
     await admin.from("organizations").delete().eq("id", org.id);

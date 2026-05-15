@@ -31,7 +31,9 @@ export async function DELETE() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    logger.warn("Unauthenticated delete attempt", { action: "account.delete.unauthorized" });
+    logger.warn("Unauthenticated delete attempt", {
+      action: "account.delete.unauthorized",
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,6 +56,9 @@ export async function DELETE() {
     );
   }
 
-  logger.info("Account deleted", { userId: user.id, action: "account.deleted" });
+  logger.info("Account deleted", {
+    userId: user.id,
+    action: "account.deleted",
+  });
   return NextResponse.json({ ok: true });
 }

@@ -1,17 +1,29 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetcher } from "./fetcher";
+import {
+  getCompetitors,
+  getEvidence,
+  getRun,
+  listRuns,
+} from "@/lib/mocks/store";
 
 // ── Types ──────────────────────────────────────────────────
 
-type RunStatus = "pending" | "queued" | "running" | "completed" | "failed" | "cancelled";
+type RunStatus =
+  | "pending"
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 interface RunListItem {
   id: string;
   org_id: string;
   created_by: string;
   status: RunStatus;
+  status_stage: string | null;
   project_id: string | null;
   config: Record<string, unknown> | null;
   created_at: string;
@@ -38,6 +50,7 @@ interface RunDetail {
   org_id: string;
   created_by: string;
   status: RunStatus;
+  status_stage: string | null;
   project_id: string | null;
   config: Record<string, unknown> | null;
   results_meta: {
@@ -110,11 +123,14 @@ interface Competitor {
 export function useRuns() {
   return useQuery<RunListItem[]>({
     queryKey: ["runs"],
-    queryFn: () => fetcher("/api/run"),
+    queryFn: () => listRuns(),
     refetchInterval: (query) => {
       const runs = query.state.data;
       const hasActive = runs?.some(
-        (r) => r.status === "pending" || r.status === "queued" || r.status === "running"
+        (r) =>
+          r.status === "pending" ||
+          r.status === "queued" ||
+          r.status === "running"
       );
       // Stop polling if all runs are terminal (completed, failed, cancelled)
       return hasActive ? 5000 : false;
@@ -125,7 +141,7 @@ export function useRuns() {
 export function useRun(id: string) {
   return useQuery<RunDetail>({
     queryKey: ["run", id],
-    queryFn: () => fetcher(`/api/run/${id}`),
+    queryFn: () => getRun(id),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       // Poll every 5s while processing
@@ -140,7 +156,7 @@ export function useRun(id: string) {
 export function useEvidence(id: string, enabled = true) {
   return useQuery<Evidence>({
     queryKey: ["run", id, "evidence"],
-    queryFn: () => fetcher(`/api/run/${id}/evidence`),
+    queryFn: () => getEvidence(id),
     enabled,
   });
 }
@@ -148,7 +164,7 @@ export function useEvidence(id: string, enabled = true) {
 export function useCompetitors(id: string, enabled = true) {
   return useQuery<Competitor[]>({
     queryKey: ["run", id, "competitors"],
-    queryFn: () => fetcher(`/api/run/${id}/competitors`),
+    queryFn: () => getCompetitors(id),
     enabled,
   });
 }

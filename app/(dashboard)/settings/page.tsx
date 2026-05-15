@@ -1,15 +1,19 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { fetcher } from "@/lib/api/fetcher";
+import {
+  deleteAccount,
+  getSettings,
+  regenerateInviteCode,
+} from "@/lib/mocks/store";
 import { toast } from "sonner";
 import { Copy, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/dashboard/page-header";
 import {
   Card,
   CardContent,
@@ -33,19 +37,14 @@ export default function SettingsPage() {
   const { user, loading } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: settings } = useQuery({
+  const { data: settings } = useQuery<OrgSettings>({
     queryKey: ["admin-settings"],
-    queryFn: () => fetcher<OrgSettings>("/api/admin/settings"),
+    queryFn: () => getSettings(),
     enabled: !!user,
   });
 
   const regenerateMutation = useMutation({
-    mutationFn: () =>
-      fetcher<OrgSettings>("/api/admin/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ regenerateInviteCode: true }),
-      }),
+    mutationFn: () => regenerateInviteCode(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-settings"] });
       toast.success("Invite code regenerated");
@@ -56,11 +55,10 @@ export default function SettingsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () =>
-      fetcher("/api/account/delete", { method: "DELETE" }),
-    onSuccess: async () => {
-      await createClient().auth.signOut();
-      window.location.href = "/login";
+    mutationFn: () => deleteAccount(),
+    onSuccess: () => {
+      toast.success("Account deleted");
+      window.location.href = "/dashboard";
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete account");
@@ -88,19 +86,14 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage organization details and billing.
-        </p>
-      </div>
+      <PageHeader
+        title="Settings"
+      />
 
       {settings && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-medium">
-              Invite code
-            </CardTitle>
+            <CardTitle className="text-base font-medium">Invite code</CardTitle>
             <CardDescription>
               Share this code with people you want to invite to your
               organization.
@@ -127,8 +120,12 @@ export default function SettingsPage() {
                 onClick={() => regenerateMutation.mutate()}
                 disabled={regenerateMutation.isPending}
               >
-                <RefreshCw className={`size-3.5 mr-1.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
-                {regenerateMutation.isPending ? "Regenerating\u2026" : "Regenerate"}
+                <RefreshCw
+                  className={`size-3.5 mr-1.5 ${regenerateMutation.isPending ? "animate-spin" : ""}`}
+                />
+                {regenerateMutation.isPending
+                  ? "Regenerating\u2026"
+                  : "Regenerate"}
               </Button>
             </div>
           </CardContent>

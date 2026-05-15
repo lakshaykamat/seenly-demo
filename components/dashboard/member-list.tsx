@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { fetcher } from "@/lib/api/fetcher";
+import { listMembers, updateMemberRole } from "@/lib/mocks/store";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,16 +22,12 @@ export function MemberList() {
 
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["members"],
-    queryFn: () => fetcher<Member[]>("/api/members"),
+    queryFn: () => listMembers(),
   });
 
   const roleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) =>
-      fetcher(`/api/members/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role }),
-      }),
+    mutationFn: ({ id, role }: { id: string; role: Member["role"] }) =>
+      updateMemberRole(id, role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
       toast.success("Member role updated");
@@ -103,7 +99,10 @@ export function MemberList() {
                     value={m.role}
                     onValueChange={(role) => {
                       if (role)
-                        roleMutation.mutate({ id: m.id, role });
+                        roleMutation.mutate({
+                          id: m.id,
+                          role: role as Member["role"],
+                        });
                     }}
                     disabled={roleMutation.isPending}
                   >

@@ -2,44 +2,47 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Building2 } from "lucide-react";
+import { Globe, Eye } from "lucide-react";
+import { NotificationBell } from "./notification-bell";
+import { useOnboardingState } from "@/components/onboarding/onboarding-gate";
+import { ActiveRunPill } from "./active-run-pill";
 
 export function TenantHeader() {
   const { user } = useAuth();
-  const supabase = createClient();
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }
+  const { firstProject } = useOnboardingState();
+  const workspaceLabel = firstProject?.domain ?? user?.orgName;
 
   return (
     <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-6 h-14">
-        <Link
-          href="/dashboard"
-          className="text-lg font-semibold tracking-tight text-primary"
-        >
-          Seenly
-        </Link>
+        <div className="flex items-center gap-4 min-w-0">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-primary shrink-0"
+          >
+            <span className="inline-flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Eye className="size-4" strokeWidth={2.5} />
+            </span>
+            Seenly
+          </Link>
+          <ActiveRunPill />
+        </div>
         <div className="flex items-center gap-3">
-          {user?.orgName && (
+          {workspaceLabel && (
             <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Building2 className="size-3.5" />
-              <span>{user.orgName}</span>
+              <Globe className="size-3.5" />
+              <span>{workspaceLabel}</span>
             </div>
           )}
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -65,11 +68,6 @@ export function TenantHeader() {
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="size-4" />
-                Log out
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

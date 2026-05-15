@@ -7,7 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Can } from "@/components/can";
 import { RunStatusBadge } from "@/components/dashboard/run-status-badge";
 import { NewRunDialog } from "@/components/dashboard/new-run-dialog";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { useRuns, type RunListItem } from "@/lib/api/runs";
+import { useLiveRuns } from "@/lib/use-live-runs";
+import { NEW_RUN_STAGES } from "@/lib/mocks/onboarding-stages";
+import { isSessionRun } from "@/lib/mocks/store";
 import { formatDistanceToNow } from "@/lib/format";
 
 // ── Score display ───────────────────────────────────────────
@@ -63,7 +67,21 @@ function EmptyState() {
 
 // ── Run row ─────────────────────────────────────────────────
 
+function stageLabelFor(run: RunListItem): string | null {
+  if (!run.status_stage) return null;
+  if (!isSessionRun(run.id)) return null;
+  const stage = NEW_RUN_STAGES.find((s) => s.key === run.status_stage);
+  if (!stage) return null;
+  return stage.label(run.project_name ?? "your site");
+}
+
 function RunRow({ run }: { run: RunListItem }) {
+  const isActive =
+    run.status === "pending" ||
+    run.status === "queued" ||
+    run.status === "running";
+  const stageLabel = isActive ? stageLabelFor(run) : null;
+
   return (
     <Link
       href={`/runs/${run.id}`}
@@ -75,8 +93,8 @@ function RunRow({ run }: { run: RunListItem }) {
           <p className="text-sm font-medium truncate">
             {run.project_name ?? `Run ${run.id.slice(0, 8)}`}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {formatDistanceToNow(run.created_at)}
+          <p className="text-xs text-muted-foreground truncate">
+            {stageLabel ?? formatDistanceToNow(run.created_at)}
           </p>
         </div>
       </div>
@@ -88,9 +106,7 @@ function RunRow({ run }: { run: RunListItem }) {
             <ScoreCell score={run.seenly_score} />
           </div>
         )}
-        {(run.status === "pending" ||
-          run.status === "queued" ||
-          run.status === "running") && (
+        {isActive && (
           <Loader2 className="size-4 animate-spin text-muted-foreground" />
         )}
       </div>
@@ -101,28 +117,26 @@ function RunRow({ run }: { run: RunListItem }) {
 // ── Page ────────────────────────────────────────────────────
 
 export default function RunsPage() {
+  useLiveRuns();
   const { data: runs, isLoading, error } = useRuns();
 
   if (isLoading) return <RunsSkeleton />;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Runs</h1>
-          <p className="text-muted-foreground mt-1">
-            Create and manage analysis runs.
-          </p>
-        </div>
-        <Can roles={["admin", "analyst"]}>
-          <NewRunDialog>
-            <Button>
-              <Plus className="size-4" />
-              New run
-            </Button>
-          </NewRunDialog>
-        </Can>
-      </div>
+      <PageHeader
+        title="Runs"
+        actions={
+          <Can roles={["admin", "analyst"]}>
+            <NewRunDialog>
+              <Button size="sm">
+                <Plus className="size-4" />
+                New run
+              </Button>
+            </NewRunDialog>
+          </Can>
+        }
+      />
 
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive">

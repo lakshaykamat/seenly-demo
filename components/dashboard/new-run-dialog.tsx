@@ -24,10 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useProjects, type Project } from "@/lib/api/projects";
-import { fetcher } from "@/lib/api/fetcher";
-
-type CreatedRun = { id: string };
+import { useProjects } from "@/lib/api/projects";
+import {
+  createProject as createProjectMock,
+  createRun as createRunMock,
+} from "@/lib/mocks/store";
 
 export function NewRunDialog({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -47,27 +48,17 @@ export function NewRunDialog({ children }: { children: React.ReactNode }) {
     setNewName("");
   };
 
-  // Create project mutation
   const createProject = useMutation({
     mutationFn: (data: { domain: string; name: string }) =>
-      fetcher<Project>("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }),
+      createProjectMock(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
 
-  // Create run mutation
   const createRun = useMutation({
-    mutationFn: (data: { project_id: string }) =>
-      fetcher<CreatedRun>("/api/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }),
+    mutationFn: (data: { projectId: string }) =>
+      createRunMock({ projectId: data.projectId }),
     onSuccess: (run) => {
       queryClient.invalidateQueries({ queryKey: ["runs"] });
       toast.success("Run created");
@@ -105,7 +96,7 @@ export function NewRunDialog({ children }: { children: React.ReactNode }) {
       }
     }
 
-    createRun.mutate({ project_id: projectId });
+    createRun.mutate({ projectId });
   };
 
   const trigger = isValidElement<{ onClick?: () => void }>(children)
@@ -123,106 +114,106 @@ export function NewRunDialog({ children }: { children: React.ReactNode }) {
         }}
       >
         <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>New run</DialogTitle>
-          <DialogDescription>
-            Select a project to analyze, or create a new one.
-          </DialogDescription>
-        </DialogHeader>
+          <DialogHeader>
+            <DialogTitle>New run</DialogTitle>
+            <DialogDescription>
+              Select a project to analyze, or create a new one.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {!showNewProject && (
-            <div className="space-y-2">
-              <Label>Project</Label>
-              {projectsLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" />
-                  Loading projects...
-                </div>
-              ) : projects && projects.length > 0 ? (
-                <Select
-                  value={selectedProjectId}
-                  onValueChange={(v) => setSelectedProjectId(v ?? "")}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {projects.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}{" "}
-                          <span className="text-muted-foreground">
-                            ({p.domain})
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No projects yet. Create one below.
-                </p>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowNewProject(true);
-                  setSelectedProjectId("");
-                }}
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <Plus className="size-3" />
-                Create new project
-              </button>
-            </div>
-          )}
-
-          {showNewProject && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">New project</span>
-                {projects && projects.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowNewProject(false)}
-                    className="text-xs text-muted-foreground hover:text-foreground"
+          <div className="space-y-4">
+            {!showNewProject && (
+              <div className="space-y-2">
+                <Label>Project</Label>
+                {projectsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" />
+                    Loading projects...
+                  </div>
+                ) : projects && projects.length > 0 ? (
+                  <Select
+                    value={selectedProjectId}
+                    onValueChange={(v) => setSelectedProjectId(v ?? "")}
                   >
-                    Select existing
-                  </button>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {projects.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}{" "}
+                            <span className="text-muted-foreground">
+                              ({p.domain})
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No projects yet. Create one below.
+                  </p>
                 )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-domain">Domain</Label>
-                <Input
-                  id="new-domain"
-                  placeholder="stripe.com"
-                  value={newDomain}
-                  onChange={(e) => setNewDomain(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-name">Project name</Label>
-                <Input
-                  id="new-name"
-                  placeholder="Stripe"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-        </div>
 
-        <DialogFooter>
-          <Button onClick={handleSubmit} disabled={!canSubmit || isPending}>
-            {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? "Creating..." : "Start run"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewProject(true);
+                    setSelectedProjectId("");
+                  }}
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <Plus className="size-3" />
+                  Create new project
+                </button>
+              </div>
+            )}
+
+            {showNewProject && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">New project</span>
+                  {projects && projects.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewProject(false)}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Select existing
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-domain">Domain</Label>
+                  <Input
+                    id="new-domain"
+                    placeholder="stripe.com"
+                    value={newDomain}
+                    onChange={(e) => setNewDomain(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-name">Project name</Label>
+                  <Input
+                    id="new-name"
+                    placeholder="Stripe"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleSubmit} disabled={!canSubmit || isPending}>
+              {isPending && <Loader2 className="size-4 animate-spin" />}
+              {isPending ? "Creating..." : "Start run"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

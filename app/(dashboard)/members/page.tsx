@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { MemberList } from "@/components/dashboard/member-list";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MembersPage() {
@@ -26,12 +27,9 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Members</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage team members in your organization.
-        </p>
-      </div>
+      <PageHeader
+        title="Members"
+      />
 
       <MemberList />
     </div>

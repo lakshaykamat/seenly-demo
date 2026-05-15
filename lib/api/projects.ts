@@ -1,9 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetcher } from "./fetcher";
-
-// ── Types ──────────────────────────────────────────────────
+import { listProjects } from "@/lib/mocks/store";
 
 interface Project {
   id: string;
@@ -15,12 +13,10 @@ interface Project {
   created_at: string;
 }
 
-// ── Hooks ──────────────────────────────────────────────────
-
 export function useProjects() {
   return useQuery<Project[]>({
     queryKey: ["projects"],
-    queryFn: () => fetcher("/api/projects"),
+    queryFn: () => listProjects(),
   });
 }
 

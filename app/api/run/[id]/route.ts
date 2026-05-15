@@ -43,7 +43,10 @@ export const PATCH = withTenant(async (ctx, request, params) => {
     .eq("id", id);
 
   if (updateError) {
-    return NextResponse.json({ error: "Failed to cancel run" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to cancel run" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ id, status: "cancelled" });

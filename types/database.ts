@@ -25,7 +25,12 @@ export interface RunConfig {
   queries_used?: {
     text: string;
     source: "seenly_suggested" | "user_added";
-    type: "discovery" | "comparison" | "alternatives" | "educational" | "user_added";
+    type:
+      | "discovery"
+      | "comparison"
+      | "alternatives"
+      | "educational"
+      | "user_added";
     weight: number;
   }[];
   /** AI token usage written by the worker after querying. */
@@ -102,7 +107,13 @@ export interface AiResultRow {
   run_id: string;
   query: string;
   query_source: "seenly_suggested" | "user_added";
-  query_type: "discovery" | "comparison" | "alternatives" | "educational" | "user_added" | null;
+  query_type:
+    | "discovery"
+    | "comparison"
+    | "alternatives"
+    | "educational"
+    | "user_added"
+    | null;
   engine: "openai" | "anthropic" | "google";
   position: number | null;
   cited_domain: string | null;
@@ -260,8 +271,7 @@ export interface Database {
       };
       competitors: {
         Row: CompetitorRow;
-        Insert: Omit<CompetitorRow, "id"> &
-          Partial<Pick<CompetitorRow, "id">>;
+        Insert: Omit<CompetitorRow, "id"> & Partial<Pick<CompetitorRow, "id">>;
         Update: Partial<Omit<CompetitorRow, "id">>;
         Relationships: [
           {

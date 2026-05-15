@@ -92,10 +92,7 @@ export async function POST(request: Request) {
       userId: user.id,
       action: "onboarding.invalid_invite",
     });
-    return NextResponse.json(
-      { error: "Invalid invite code" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
   }
 
   // Assign user to org as analyst (safe default for joiners)

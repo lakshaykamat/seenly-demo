@@ -39,7 +39,9 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    logger.warn("Unauthenticated /api/me request", { action: "me.unauthorized" });
+    logger.warn("Unauthenticated /api/me request", {
+      action: "me.unauthorized",
+    });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -54,13 +56,19 @@ export async function GET() {
   if (!profile) {
     // Profile missing but user is authenticated — trigger was likely missed at signup.
     // Send to onboarding rather than 401 to avoid a redirect loop.
-    logger.warn("Profile not found — redirecting to onboarding", { userId: user.id, action: "me.no_profile" });
+    logger.warn("Profile not found — redirecting to onboarding", {
+      userId: user.id,
+      action: "me.no_profile",
+    });
     return NextResponse.json({ needsOnboarding: true });
   }
 
   // User exists but hasn't completed onboarding
   if (!profile.org_id) {
-    logger.info("User needs onboarding", { userId: user.id, action: "me.needs_onboarding" });
+    logger.info("User needs onboarding", {
+      userId: user.id,
+      action: "me.needs_onboarding",
+    });
     return NextResponse.json({ needsOnboarding: true });
   }
 

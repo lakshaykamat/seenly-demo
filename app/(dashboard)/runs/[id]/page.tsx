@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RunStatusBadge } from "@/components/dashboard/run-status-badge";
+import { RunProgressCard } from "@/components/dashboard/run-progress-card";
 import {
   useRun,
   useEvidence,
@@ -29,7 +30,11 @@ import {
   type CrawlPage,
   type Competitor,
 } from "@/lib/api/runs";
-import { fetcher } from "@/lib/api/fetcher";
+import {
+  createRun as createRunMock,
+  cancelRun as cancelRunMock,
+} from "@/lib/mocks/store";
+import { useLiveRuns } from "@/lib/use-live-runs";
 import { formatDistanceToNow } from "@/lib/format";
 
 // ── Score card ──────────────────────────────────────────────
@@ -154,12 +159,13 @@ function EvidenceTable({ results }: { results: AiResult[] }) {
               <tr
                 key={r.id}
                 className={`border-b last:border-0 ${r.is_degraded ? "opacity-50" : ""}`}
-                title={r.is_degraded ? "Degraded: response quality was too low to score reliably" : undefined}
+                title={
+                  r.is_degraded
+                    ? "Degraded: response quality was too low to score reliably"
+                    : undefined
+                }
               >
-                <td
-                  className="py-2 pr-3 max-w-50 truncate"
-                  title={r.query}
-                >
+                <td className="py-2 pr-3 max-w-50 truncate" title={r.query}>
                   {r.query}
                 </td>
                 <td className="py-2 pr-3 capitalize">{r.engine}</td>
@@ -171,8 +177,12 @@ function EvidenceTable({ results }: { results: AiResult[] }) {
                 </td>
                 <td
                   className={`py-2 pr-3 text-xs text-muted-foreground cursor-pointer select-none ${expandedId === r.id ? "whitespace-normal" : "max-w-75 truncate"}`}
-                  title={expandedId === r.id ? undefined : (r.snippet ?? undefined)}
-                  onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                  title={
+                    expandedId === r.id ? undefined : (r.snippet ?? undefined)
+                  }
+                  onClick={() =>
+                    setExpandedId(expandedId === r.id ? null : r.id)
+                  }
                 >
                   {r.snippet ?? "--"}
                 </td>
@@ -390,15 +400,11 @@ export default function RunDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
+  useLiveRuns();
   const { data: run, isLoading, error } = useRun(id);
 
   const retryRun = useMutation({
-    mutationFn: (projectId: string | null) =>
-      fetcher<{ id: string }>("/api/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: projectId }),
-      }),
+    mutationFn: (projectId: string | null) => createRunMock({ projectId }),
     onSuccess: (newRun) => {
       queryClient.invalidateQueries({ queryKey: ["runs"] });
       toast.success("Run created");
@@ -410,12 +416,7 @@ export default function RunDetailPage({
   });
 
   const cancelRun = useMutation({
-    mutationFn: () =>
-      fetcher(`/api/run/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "cancel" }),
-      }),
+    mutationFn: () => cancelRunMock(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["run", id] });
       queryClient.invalidateQueries({ queryKey: ["runs"] });
@@ -548,26 +549,27 @@ export default function RunDetailPage({
 
       {/* Processing state */}
       {isProcessing && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Loader2 className="size-8 animate-spin text-muted-foreground mb-3" />
-          <p className="text-sm font-medium capitalize">{run.status}</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Results will appear once analysis completes.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="mt-4 text-muted-foreground"
-            disabled={cancelRun.isPending}
-            onClick={() => cancelRun.mutate()}
-          >
-            {cancelRun.isPending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <Square className="size-3.5" />
-            )}
-            Stop run
-          </Button>
+        <div className="space-y-4">
+          <RunProgressCard
+            run={run}
+            domain={run.project_name ?? `Run ${run.id.slice(0, 8)}`}
+          />
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-muted-foreground"
+              disabled={cancelRun.isPending}
+              onClick={() => cancelRun.mutate()}
+            >
+              {cancelRun.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Square className="size-3.5" />
+              )}
+              Stop run
+            </Button>
+          </div>
         </div>
       )}
 
@@ -624,7 +626,8 @@ export default function RunDetailPage({
           {run.results_meta?.crawl_status === "fallback" && (
             <div className="rounded-lg border border-blue-500/30 bg-blue-50/50 p-3 text-xs text-blue-800 dark:bg-blue-950/20 dark:text-blue-200 flex items-center gap-2">
               <Info className="size-3.5 shrink-0" />
-              Site content couldn&apos;t be extracted (blocked or too thin) — queries were generated from project settings instead.
+              Site content couldn&apos;t be extracted (blocked or too thin) —
+              queries were generated from project settings instead.
             </div>
           )}
 
