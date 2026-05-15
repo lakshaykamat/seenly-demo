@@ -1,0 +1,724 @@
+INTERNAL ENGINEERING DOSSIER
+
+Seenly Enterprise
+Technical Architecture & Implementation Dossier
+Developer + AI Engineer Edition — Production Implementation Reference
+
+SECTION 0
+
+Executive Technical Summary
+What Seenly Is
+
+Top Technical Risks
+
+Governance infrastructure built on immutable, run-based
+
+•
+
+Crawl failures & firewall blocking
+
+•
+
+Cost control at scale
+
+•
+
+Multi-LLM drift & consensus stability
+
+configurable dimension scopes.
+
+•
+
+Scaling across enterprise tenants
+
+POC Status
+
+10 Non-Negotiable Invariants
+
+UI navigation, simulated data, and run logic patterns are
+
+Immutable runs, ID-based snapshots, null ≠ 0, blocked ≠
+
+analysis snapshots. Each run captures AI visibility,
+competitive positioning, and AEO maturity across
+
+implemented. Missing for production: engine, workers,
+persistent storage, security, and reliability layers.
+
+poor score, confidence separated from score, and more
+(detailed in Section 2).
+
+SECTION 1
+
+Core Domain Model
+Entity
+
+Key Fields
+
+Mutability
+
+Audit
+
+Tenant
+
+id, name, plan, created_at
+
+Mutable (admin)
+
+All changes logged
+
+Workspace / Project
+
+id, tenant_id, dimensions[]
+
+Mutable
+
+Change history
+
+Dimension / DimensionValue
+
+id, axis, values[], independent
+
+Append-only values
+
+Version tracked
+
+RunScenario → RunExecution
+
+scenario_id, scope, frequency
+
+Scenario mutable; Execution
+immutable
+
+Full lineage
+
+AnalysisRun
+
+id, execution_id, snapshot_ids
+
+Immutable
+
+Hash-sealed
+
+CompetitorRegistry
+
+id, domain, tracking_scope
+
+Mutable registry
+
+Scope changes logged
+
+GovernanceAsset / LogEntry
+
+id, asset_type, score, evidence
+
+Log immutable
+
+Append-only
+
+Role / RoleDimensionAccess
+
+id, permissions, dimension_filter
+
+Mutable (admin)
+
+Privileged action trail
+
+All entities use UUID primary keys. Indexes on tenant_id, execution_id, and dimension scope. AnalysisRun snapshots reference IDs — never names.
+
+SECTION 2
+
+Non-Negotiable Product Invariants
+Invariant
+
+Why It Exists
+
+Enforcement
+
+Test
+
+AnalysisRun is immutable
+
+Historical truth integrity
+
+No UPDATE/DELETE on table
+
+Mutation attempt → 403
+
+Snapshots stored by IDs
+
+Dimension renames don't
+corrupt history
+
+FK to ID, never name
+
+Rename dimension → old run
+unchanged
+
+Governance never mutates scores
+
+Audit trail integrity
+
+Append-only log
+
+Score override attempt fails
+
+Null ≠ 0
+
+"Not measurable" is distinct
+
+Schema nullable fields
+
+Null renders as N/A in UI
+
+Crawl blocked ≠ poor score
+
+Different operational state
+
+Separate crawl_status enum
+
+Blocked site → no score, flag
+shown
+
+Confidence separate from score
+
+Low-signal results must be
+labeled
+
+Dual fields on every metric
+
+Low confidence → UI warning
+badge
+
+Simulation never writes to truth
+
+What-if is sandboxed
+
+Separate execution context
+
+Dry-run → no AnalysisRun
+created
+
+SECTION 3
+
+Engine Architecture — Production Services
+A) API Service
+
+B) Engine Orchestrator
+
+REST/GraphQL gateway. Auth, validation, RBAC enforcement.
+
+Creates jobs from scenarios. Manages execution lifecycle.
+
+C) Worker Pool
+
+D) Storage Layer
+
+Crawl + LLM evaluation workers. Horizontally scalable.
+
+Runs, evidence artifacts, exports. Immutable run store.
+
+E) Scheduler
+
+F) Observability + G) Security
+
+Cron + event-based triggers. Timezone-aware recurrence.
+
+Structured logs, tracing, metrics. Admin & RBAC layer.
+
+Engine Orchestrator
+AnalysisRun Stored
+
+Scheduled Run
+Worker Pool
+
+Manual runs follow the same pipeline. Governance approval triggers Execution checklist creation + Export job.
+
+SECTION 4
+
+Crawl & Extraction System
+1
+
+Page Discovery
+Try sitemap variants → select top 10–20 business URLs. Fallback: homepage fetch + internal link
+extraction. Exclude blog, careers, legal, parameterized URLs.
+
+2
+
+Content Extraction
+Fast HTML extraction first. If content <800 chars → JS-render fallback (Firecrawl/Playwright), capped to
+M pages.
+
+3
+
+Blocked Detection
+Detect 403/401/429, Cloudflare pages, empty body. Return structured state: ok | partial | blocked
+| unreachable + confidence 0–100. Auto-add "AI Not Readable" recommendation.
+
+4
+
+Evidence Artifacts
+Store per-page: extraction method, text length, titles, H1/H2, JSON-LD types, internal links count,
+keyword list.
+
+SECTION 5
+
+Business Understanding & Query Generator
+A 3-step grounded engine — deterministic and explainable.
+
+Step A: Profile Extraction
+From page evidence → company summary, 3–6 offer clusters (name, keywords ≥2, target buyers, confidence). Fail-fast if no cluster meets minimum signal.
+
+Step B: Query Generation
+Structured library: queries per cluster, types (high-intent / informational / competitive), geo-tagged, versioned query packs per dimension scope.
+
+Step C: Brand-Only Fallback
+When extraction fails: domain name + brand tokens, 6–12 safe generic queries. Labeled "low confidence / fallback mode." Limited competitor inference.
+
+SECTION 6
+
+AI Visibility Engine — Multi-LLM + Consensus
+Evaluation Pipeline
+
+Coverage Rule
+
+For each canonical query, send to each enabled LLM
+
+Brand is "present" on a query if it appears in ≥2 LLMs
+
+provider. Parse top 3 domain recommendations. Capture:
+
+among enabled providers.
+
+•
+
+Rank position (1/2/3)
+
+Coverage computed: per query → per topic cluster →
+
+•
+
+Snippet / cited mention
+
+aggregated per scope.
+
+•
+
+Evidence link (raw response hash)
+
+•
+
+Sentiment label for target domain
+
+Impacts:
+•
+
+AI Visibility Index
+
+•
+
+Competitive presence share
+
+•
+
+Stability metrics
+
+SECTION 7
+
+Competitor Detection & Governance
+Derivation
+
+Exclusions
+
+Selection
+
+Competitors from AI responses, aggregated across
+queries. Domain normalization applied.
+
+Directories, marketplaces, media, gov, Wikipedia filtered
+out.
+
+Must appear in ≥2 distinct queries. Cap: 10 per scope.
+
+Add Competitor Workflow
+
+Set Tracking Scope
+
+Validate Against Cap
+
+Choose global or
+Country/BU/Brand scope.
+
+Enforce max 10 competitors
+per scope.
+
+Register Domain
+Add competitor domains to
+the detection list.
+
+Tracking scope: global or scoped (Country/BU/Brand/Domain). Cost scales linearly with tracked competitors × query volume.
+
+Activate Tracking
+Enable monitoring; costs
+scale with scope.
+
+SECTION 8
+
+Scoring Framework
+Score
+
+Formula Basis
+
+Fallback
+
+UI Display
+
+AI Visibility Index
+
+Weighted by query type + position
+
+N/A if no data
+
+Numeric + confidence badge
+
+Coverage Index
+
+Consensus-based (≥2 LLMs)
+
+0% if no presence
+
+Percentage
+
+Stability Index
+
+Variance of presence across runs
+
+N/A if <2 runs
+
+Trend indicator
+
+Sentiment Index
+
+Pos/neutral/neg ratio
+
+Neutral default
+
+Color-coded
+
+AEO Structural Maturity
+
+Pillar-based checks
+
+N/A if crawl blocked
+
+Pillar breakdown
+
+Crawl Confidence
+
+Crawl reliability signals
+
+0 if unreachable
+
+Status badge
+
+Seenly Score
+
+Composite of all above
+
+Partial if inputs missing
+
+Aggregate + breakdown
+
+Null means "not measurable" and renders as N/A — never as 0. Confidence is always a separate field from the score itself.
+
+SECTION 9
+
+Recommendations & Action Plans
+
+Recommendation Structure
+Every recommendation is tied to: scope (dimension snapshot), evidence (which check failed), expected impact (score axis), effort estimate,
+and owner role.
+
+Types
+•
+•
+•
+•
+•
+
+AEO structural fixes
+GEO content improvements
+Coverage & sentiment mitigation
+Competitive gap closure
+Governance/risk mitigations
+
+User Approves Recommendation
+Owner reviews and confirms the
+recommended action.
+
+Auto-Create Execution Checklist
+System generates linked tasks with
+
+SECTION 10
+
+Scenario System & Scheduling
+Scenario Definition
+Type, scope (dimension filters), frequency, recurrence, run window,
+enabled engines, query pack selection, alert thresholds.
+
+Scheduling Options
+Run now, scheduled start, recurrence (daily/weekly/monthly), timezoneaware, max concurrency, queue backpressure handling.
+
+Demo Mode
+Dry-run scheduling — no real worker execution. Validates scenario
+config and simulates queue behavior.
+
+SECTION 11
+
+Exports & BI Integration
+CSV Export — Finest Grain
+
+BI Integration
+
+•
+
+run_id + scope snapshot
+
+Phase 1: Manual pull via Export Console with filters and
+
+•
+
+Per-query evidence
+
+scope selection.
+
+•
+
+Per-competitor metrics
+
+•
+
+Per-pillar AEO checks
+
+Formats
+CSV · JSON · PDF Executive Report
+
+Phase 2: API endpoints with pagination, dimension filters,
+and RBAC-enforced access.
+
+SECTION 12
+
+Roles & Access Model
+Executive
+
+Analyst
+
+Admin
+
+Read-only. Global KPIs, story-first
+
+Explorers, evidence drill-down,
+
+Setup, integrations, governance
+
+dashboards. No configuration
+
+recommendations. Read + limited
+
+config. Full write + audit trail for
+
+access.
+
+write.
+
+privileged actions.
+
+RBAC supports RoleDimensionAccess — permissions scoped to specific dimension values. Read vs. write
+separated. All privileged actions produce audit log entries.
+
+SECTION 13
+
+Security & SOC2 Readiness
+Environment Separation
+
+Auth & Access
+
+Dev / Stage / Prod with isolated secrets management.
+
+SSO (SAML/OIDC), API key rotation, IP allowlisting
+(optional).
+
+Audit & Compliance
+
+Incident Readiness
+
+Audit logs, RBAC, data retention policies, DPA +
+
+Monitoring, incident response, pen-test readiness,
+
+subprocessors list.
+
+vendor risk posture for LLM providers.
+
+SOC2 verification: Map controls to tests → collect evidence artifacts → validate with auditor. Key areas: access control, change management, availability,
+confidentiality.
+
+SECTION 14
+
+Cost Control & Anti-Abuse
+Rate Limits & Quotas
+•
+
+Per-tenant quotas enforced
+
+•
+
+Caching strategy for repeated queries
+
+•
+
+Deterministic seed + immutability (preview vs prod)
+
+Abuse Prevention
+•
+
+Domain reuse restrictions
+
+•
+
+Email gating
+
+•
+
+Bot detection
+
+Cost Model
+Unit
+
+Cost Driver
+
+Per crawl page
+
+Compute + bandwidth
+
+Per query per LLM
+
+Token pricing
+
+Per run per scope
+
+Pages × queries ×
+LLMs
+
+Competitor tracking
+
+Linear with count ×
+queries
+
+SECTION 15
+
+Observability & Reliability
+1
+
+2
+
+3
+
+4
+
+Logging & Tracing
+Structured logs, request tracing, job tracing across crawl + LLM workers.
+
+Key Metrics
+Crawl success rate, LLM latency, cost per tenant, run completion time, error
+taxonomy.
+
+Alerting & Dashboards
+Alerting rules for failures and cost spikes. Internal dashboards for ops team.
+
+SLO / SLA Targets
+Defined uptime, latency, and completion targets per service tier.
+
+SECTION 16
+
+Testing Strategy
+Unit Tests
+Score formulas validated with known inputs/outputs.
+
+Regression & Invariant Tests
+Snapshot immutability, crawl-blocked handling, null
+safety enforcement.
+
+Integration Tests
+Engine pipeline end-to-end: crawl → extraction → LLM
+→ scoring.
+
+E2E & Load Tests
+Scheduling + exports flow. Load tests for large
+enterprise tenants with concurrent runs.
+
+SECTION 17
+
+Migration Plan: POC → Production
+Phase 1: Foundation
+
+1
+
+Keep UI as reference. Introduce database + queue
+infrastructure. Replace simulated engine with real
+backend.
+
+2
+
+Phase 2: Core Engine
+Implement real crawl system. Implement multi-LLM
+
+Phase 3: Enterprise Hardening
+
+3
+
+calls with consensus logic. Wire scoring pipeline.
+
+Add security & RBAC. Add staging environment.
+Implement observability stack.
+
+4
+
+Phase 4: Production Ready
+Harden exports. Load testing. SOC2 evidence
+collection. Go-live.
+
+SECTION 18
+
+Appendices
+A) Data Contracts
+
+B) Error Taxonomy
+
+C) UI-to-Backend Mapping
+
+JSON examples: AnalysisRun
+
+Blocked site, partial crawl, LLM
+
+Route → Purpose → Required data
+
+snapshot, QuerySet, Evidence
+
+timeout, empty extraction, invalid
+
+→ Mutability for every application
+
+record, Competitor registry item,
+
+query pack, quota exceeded.
+
+view.
+
+Recommendation item,
+Governance log entry.
+
+This document is a living engineering reference. All contracts, schemas, and invariants defined here are the source of
+truth for Seenly Enterprise production implementation.
+
+

@@ -1,0 +1,14 @@
+services:
+  worker:
+    image: ghcr.io/lakshaykamat/seenly-worker:latest
+    restart: unless-stopped
+    env_file: .env
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M

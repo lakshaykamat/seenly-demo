@@ -1,0 +1,16 @@
+# Ignore everything by default, then whitelist workers/
+**
+
+# Allow the worker source
+!workers/
+!workers/**
+
+# Re-exclude things inside workers/ that shouldn't be in the image
+workers/.venv/
+workers/.venv/**
+workers/__pycache__/
+workers/__pycache__/**
+workers/**/__pycache__/
+workers/**/*.pyc
+workers/**/*.pyo
+workers/.env
