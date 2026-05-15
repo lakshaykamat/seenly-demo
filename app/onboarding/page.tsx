@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default function OnboardingPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+    <main className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
       <Aurora />
       <Grain />
 
@@ -27,10 +27,45 @@ export default function OnboardingPage() {
         </a>
       </header>
 
-      <div className="relative z-10 mx-auto px-6 pt-10 pb-16 md:pt-14">
+      <div className="relative z-10 flex-1 mx-auto w-full px-6 pt-10 pb-12 md:pt-14">
         <OnboardingLanding />
       </div>
+
+      <Footer />
     </main>
+  );
+}
+
+function Footer() {
+  const links = [
+    { label: "Privacy", href: "/legal/privacy" },
+    { label: "Terms", href: "/legal/terms" },
+    { label: "Docs", href: "/docs" },
+    { label: "Status", href: "/status" },
+  ];
+  return (
+    <footer className="relative z-10 border-t border-border/60 bg-background/30 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row md:px-10">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-5 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Eye className="size-3" strokeWidth={2.5} />
+          </span>
+          <span className="font-medium text-foreground/80">Seenly</span>
+          <span className="text-muted-foreground/60">© 2026</span>
+        </div>
+        <nav className="flex items-center gap-5">
+          {links.map((l) => (
+            <a
+              key={l.label}
+              href={l.href}
+              className="hover:text-foreground transition-colors"
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </footer>
   );
 }
 

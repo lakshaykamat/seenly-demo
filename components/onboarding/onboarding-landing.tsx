@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Loader2, Search, Sparkles, FileCode2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { completeOnboarding, normalizeDomain } from "@/lib/mocks/store";
 import {
@@ -159,91 +159,117 @@ export function OnboardingLanding() {
         </p>
       </form>
 
-      <div className="mt-12">
-        <div className="flex items-center justify-center gap-x-7 gap-y-3 flex-wrap text-sm text-muted-foreground">
-          <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground/60">
-            Tracked engines
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <OpenAIMark className="size-4" />
-            GPT-4o
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <ClaudeMark className="size-4" />
-            Claude Sonnet 4.6
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <GeminiMark className="size-4" />
-            Gemini 2.5 Pro
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <PerplexityMark className="size-4" />
-            Perplexity
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-16 grid gap-4 sm:grid-cols-3">
-        <PillarCard
-          icon={<Search className="size-4" strokeWidth={2.25} />}
-          label="Search Visibility"
-          title="Rank, AI overviews, SERP features"
-          body="Daily positions and feature ownership across Google, with competitor share-of-voice and rank movement alerts."
-        />
-        <PillarCard
-          icon={<Sparkles className="size-4" strokeWidth={2.25} />}
-          label="AI Recommendation"
-          title="ChatGPT, Claude, Gemini, Perplexity"
-          body="Per-engine citation share, sentiment, and competitor head-to-head — with the exact prompts and answers behind every number."
-        />
-        <PillarCard
-          icon={<FileCode2 className="size-4" strokeWidth={2.25} />}
-          label="AI Understanding"
-          title="Schema, llms.txt, crawler access"
-          body="Page-level audit of structured data, semantic clarity, and which AI crawlers can — and can't — read your site."
-        />
-      </div>
-
-      <div className="mt-14 flex items-center justify-center gap-6 text-xs text-muted-foreground/80">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-1 rounded-full bg-foreground/40" />
-          Evidence for every score
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-1 rounded-full bg-foreground/40" />
-          Weekly run cadence
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-1 rounded-full bg-foreground/40" />
-          No setup required
-        </span>
+      <div className="mt-16 mx-auto max-w-4xl">
+        <TrustBar />
       </div>
     </div>
   );
 }
 
-interface PillarCardProps {
-  icon: React.ReactNode;
-  label: string;
-  title: string;
-  body: string;
+const TRUSTED_BRANDS: Array<{
+  name: string;
+  accent: string;
+  shape: "square" | "diamond" | "circle" | "hex";
+}> = [
+  { name: "Adspott", accent: "#FF5A5F", shape: "square" },
+  { name: "Apparatus AI", accent: "#6366F1", shape: "diamond" },
+  { name: "Uplyt", accent: "#10B981", shape: "circle" },
+  { name: "YTubeBooster", accent: "#F59E0B", shape: "hex" },
+  { name: "OneClip AI", accent: "#8B5CF6", shape: "square" },
+];
+
+function TrustBar() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-border/60 border-y border-border/60 py-5">
+      <div className="px-6 py-3 sm:py-0">
+        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
+          4 engines
+        </p>
+        <div className="mt-3 flex items-center gap-3.5 text-foreground/70">
+          <OpenAIMark className="size-4" />
+          <ClaudeMark className="size-4" />
+          <GeminiMark className="size-4" />
+          <PerplexityMark className="size-4" />
+        </div>
+      </div>
+
+      <div className="px-6 py-3 sm:py-0 text-center">
+        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
+          Trusted by
+        </p>
+        <div className="mt-3 flex items-center justify-center gap-3">
+          {TRUSTED_BRANDS.map((b) => (
+            <span
+              key={b.name}
+              title={b.name}
+              className="opacity-70 hover:opacity-100 transition-opacity"
+            >
+              <BrandShape accent={b.accent} shape={b.shape} />
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-6 py-3 sm:py-0 text-right">
+        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground/70">
+          Tracking
+        </p>
+        <div className="mt-1 flex items-baseline justify-end gap-1.5">
+          <span className="text-xl font-semibold tabular-nums text-foreground">
+            3,247
+          </span>
+          <span className="text-xs text-muted-foreground">prompts</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function PillarCard({ icon, label, title, body }: PillarCardProps) {
+function BrandShape({
+  accent,
+  shape,
+}: {
+  accent: string;
+  shape: "square" | "diamond" | "circle" | "hex";
+}) {
+  const common = "size-4 shrink-0 transition-opacity opacity-70 group-hover:opacity-100";
+  if (shape === "circle") {
+    return (
+      <svg viewBox="0 0 16 16" className={common} aria-hidden>
+        <circle cx="8" cy="8" r="7" fill={accent} />
+        <circle cx="8" cy="8" r="3" fill="var(--background)" />
+      </svg>
+    );
+  }
+  if (shape === "diamond") {
+    return (
+      <svg viewBox="0 0 16 16" className={common} aria-hidden>
+        <rect
+          x="3"
+          y="3"
+          width="10"
+          height="10"
+          fill={accent}
+          transform="rotate(45 8 8)"
+          rx="1.5"
+        />
+      </svg>
+    );
+  }
+  if (shape === "hex") {
+    return (
+      <svg viewBox="0 0 16 16" className={common} aria-hidden>
+        <path
+          d="M8 1.5 L13.5 4.5 L13.5 11.5 L8 14.5 L2.5 11.5 L2.5 4.5 Z"
+          fill={accent}
+        />
+      </svg>
+    );
+  }
   return (
-    <div className="group relative rounded-2xl border border-border/70 bg-card/70 p-5 backdrop-blur-sm transition-colors hover:border-border hover:bg-card">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        <span className="inline-flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-          {icon}
-        </span>
-        {label}
-      </div>
-      <p className="mt-4 text-sm font-semibold text-foreground leading-snug">
-        {title}
-      </p>
-      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-        {body}
-      </p>
-    </div>
+    <svg viewBox="0 0 16 16" className={common} aria-hidden>
+      <rect x="2" y="2" width="12" height="12" rx="3" fill={accent} />
+      <rect x="6" y="6" width="4" height="4" rx="0.5" fill="var(--background)" />
+    </svg>
   );
 }
