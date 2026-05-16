@@ -148,7 +148,7 @@ export default function RunsPage() {
 
       {runs && runs.length > 0 && (
         <div className="space-y-2">
-          {runs.map((run) => (
+          {runs.slice(0, 2).map((run) => (
             <RunRow key={run.id} run={run} />
           ))}
         </div>
