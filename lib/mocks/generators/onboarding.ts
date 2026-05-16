@@ -38,7 +38,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "validating",
     startMs: 0,
-    label: (d) => `Validating ${d}`,
+    label: () => `Validating domain`,
     sublines: [
       "Resolving DNS and SSL",
       "Checking robots.txt",
@@ -48,7 +48,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "discovering_pages",
     startMs: 1500,
-    label: (d) => `Discovering 12 pages on ${d}`,
+    label: () => `Discovering pages`,
     sublines: [
       "Mapping primary navigation",
       "Indexing product surfaces",
@@ -59,7 +59,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "fetching_serp",
     startMs: 4500,
-    label: () => "Fetching live SERP for 28 tracked keywords",
+    label: () => "Fetching SERP results",
     sublines: [
       "Pulling Google US results",
       "Detecting featured snippets",
@@ -70,7 +70,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "crawling_pages",
     startMs: 9500,
-    label: () => "Crawling pages for schema, structure, and crawlability",
+    label: () => "Crawling pages",
     sublines: [
       "Parsing JSON-LD blocks",
       "Auditing heading hierarchy",
@@ -82,20 +82,19 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "probing_engines",
     startMs: 16500,
-    label: () =>
-      "Asking ChatGPT, Claude, Gemini, and Perplexity 18 prompts about your brand",
+    label: () => "Probing AI engines",
     sublines: [
-      "ChatGPT — best in category prompts",
-      "Claude — comparison prompts",
-      "Gemini — buyer-intent prompts",
-      "Perplexity — citation extraction",
+      "ChatGPT, best in category prompts",
+      "Claude, comparison prompts",
+      "Gemini, buyer intent prompts",
+      "Perplexity, citation extraction",
       "Tallying citation share",
     ],
   },
   {
     key: "analyzing_citations",
     startMs: 24500,
-    label: () => "Extracting citations from 72 engine responses",
+    label: () => "Extracting citations",
     sublines: [
       "Parsing answer attributions",
       "Resolving competitor mentions",
@@ -105,7 +104,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "scoring",
     startMs: 27000,
-    label: () => "Computing AVS, AEO, citation share, and pillar scores",
+    label: () => "Computing scores",
     sublines: [
       "Weighting answer visibility",
       "Calibrating engine optimization",
@@ -116,7 +115,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "building_workspace",
     startMs: 28500,
-    label: () => "Setting up your workspace, recommendations, and alerts",
+    label: () => "Building workspace",
     sublines: [
       "Seeding 23 recommendations",
       "Wiring 7 alert rules",
@@ -126,7 +125,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "done",
     startMs: 30000,
-    label: () => "Ready — Rankly score 74.6 · routing to dashboard…",
+    label: () => "Ready. Opening workspace",
     sublines: ["Opening your workspace"],
   },
 ];

@@ -225,7 +225,7 @@ export function ReportView({ report }: { report: Report }) {
                 <div className="w-24 text-sm font-medium">{c.model}</div>
                 <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[color:var(--pillar-ai)] transition-[width] duration-700"
+                    className="h-full rounded-full bg-primary transition-[width] duration-700"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -251,7 +251,7 @@ export function ReportView({ report }: { report: Report }) {
         {[
           { title: "Top wins", items: report.narrative.wins, color: "var(--positive)" },
           { title: "Top risks", items: report.narrative.risks, color: "var(--negative)" },
-          { title: "Recommended focus", items: report.narrative.focus, color: "var(--pillar-ai)" },
+          { title: "Recommended focus", items: report.narrative.focus, color: "var(--primary)" },
         ].map((block) => (
           <div key={block.title} className="rounded-xl bg-card ring-1 ring-border p-5">
             <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: block.color }}>

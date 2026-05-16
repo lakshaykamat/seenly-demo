@@ -44,10 +44,10 @@ const SENTIMENT_COLORS = {
 };
 
 const SET_COLORS: Record<string, string> = {
-  Discovery: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  Comparison: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  Educational: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  "Bottom-funnel": "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  Discovery: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  Comparison: "bg-primary/10 text-primary",
+  Educational: "bg-warning/10 text-warning",
+  "Bottom-funnel": "bg-positive/10 text-positive",
 };
 
 const MODEL_BUBBLE: Record<string, string> = {

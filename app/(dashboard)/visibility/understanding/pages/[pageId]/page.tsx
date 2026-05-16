@@ -29,16 +29,16 @@ const SEVERITY_ICON = {
 } as const;
 
 const SEVERITY_TONE: Record<AuditSeverity, string> = {
-  critical: "text-rose-600 dark:text-rose-300 bg-rose-500/10 border-rose-500/30",
-  warning: "text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/30",
+  critical: "text-negative bg-negative/10 border-negative/30",
+  warning: "text-warning bg-warning/10 border-warning/30",
   info: "text-sky-700 dark:text-sky-300 bg-sky-500/10 border-sky-500/30",
-  ok: "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/30",
+  ok: "text-positive bg-positive/10 border-positive/30",
 };
 
 const ACCESS_TONE: Record<CrawlerAccess, string> = {
-  allowed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
-  partial: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  blocked: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+  allowed: "bg-positive/15 text-positive",
+  partial: "bg-warning/15 text-warning",
+  blocked: "bg-negative/15 text-negative",
 };
 
 function ScoreCard({

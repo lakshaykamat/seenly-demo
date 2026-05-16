@@ -26,6 +26,7 @@ import { humanizePath } from "./urls";
 export const CURRENT_USER: AuthUser = {
   id: COMPANY.user.id,
   email: COMPANY.user.email,
+  name: "Ankur",
   role: COMPANY.user.role,
   orgId: COMPANY.org.id,
   orgName: COMPANY.org.name,

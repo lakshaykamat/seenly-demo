@@ -106,18 +106,18 @@ function SetupCard({
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(80% 120% at 0% 0%, var(--pillar-ai-soft), transparent 60%)",
-          opacity: 0.55,
+            "radial-gradient(80% 120% at 0% 0%, color-mix(in oklab, var(--primary) 15%, transparent), transparent 60%)",
+          opacity: 0.7,
         }}
       />
       <CardContent className="relative p-8 md:p-12">
         <div className="text-center">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-            Add your domain to populate this workspace
+            Add your domain to get started
           </h2>
           <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
-            We&apos;ll crawl your pages, probe 4 AI engines, and score how
-            you&apos;re recommended — about 10 seconds.
+            We&apos;ll check how ChatGPT, Claude, Gemini, and Perplexity talk
+            about your site. Takes about 10 seconds.
           </p>
         </div>
 
@@ -171,7 +171,7 @@ function SetupCard({
               </span>
             ) : (
               <span className="text-muted-foreground">
-                Public sites only · no signup beyond this
+                Public sites only. No extra signup.
               </span>
             )}
             <button

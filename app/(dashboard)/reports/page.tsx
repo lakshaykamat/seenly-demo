@@ -299,7 +299,7 @@ export default function ReportsPage() {
                   className="group relative flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border hover:ring-foreground/20 hover:shadow-xl transition-all duration-300"
                 >
                   {/* Cover band */}
-                  <div className="relative h-32 bg-gradient-to-br from-[color:var(--pillar-ai-soft)] via-[color:var(--pillar-ai-soft)]/30 to-transparent border-b border-border/60">
+                  <div className="relative h-32 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b border-border/60">
                     <div
                       aria-hidden
                       className="absolute inset-0 opacity-[0.04]"
@@ -312,7 +312,7 @@ export default function ReportsPage() {
                     <div className="relative h-full flex items-center justify-between px-6">
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center justify-center size-16 rounded-xl bg-card ring-1 ring-border shadow-sm">
-                          <span className="text-[11px] font-semibold tracking-[0.14em] text-[color:var(--pillar-ai)]">
+                          <span className="text-[11px] font-semibold tracking-[0.14em] text-primary">
                             {monthShort}
                           </span>
                           <span className="text-lg font-bold tabular-nums leading-none mt-0.5">
@@ -320,7 +320,7 @@ export default function ReportsPage() {
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-[color:var(--pillar-ai)]/80">
+                          <p className="text-[10px] uppercase tracking-[0.18em] font-medium text-primary/80">
                             Executive report
                           </p>
                           <h3 className="text-base font-semibold tracking-tight mt-1 truncate max-w-[280px]">
@@ -328,7 +328,7 @@ export default function ReportsPage() {
                           </h3>
                         </div>
                       </div>
-                      <div className="text-[color:var(--pillar-ai)] opacity-80">
+                      <div className="text-primary opacity-80">
                         <Sparkline
                           data={visibility.trend}
                           width={88}
@@ -365,7 +365,7 @@ export default function ReportsPage() {
                       </div>
                     </div>
 
-                    <blockquote className="border-l-2 border-[color:var(--pillar-ai)]/40 pl-4 text-[14px] leading-relaxed text-foreground/80 line-clamp-3">
+                    <blockquote className="border-l-2 border-primary/40 pl-4 text-[14px] leading-relaxed text-foreground/80 line-clamp-3">
                       {report.narrative.summary}
                     </blockquote>
 

@@ -10,12 +10,12 @@ export function UpgradeMessage({
   message = "This feature is available on a higher plan.",
 }: UpgradeMessageProps) {
   return (
-    <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+    <Card className="border-warning/30 bg-warning/10">
       <CardContent className="flex items-center justify-between gap-4 py-3">
-        <p className="text-sm text-amber-800 dark:text-amber-200">{message}</p>
+        <p className="text-sm text-warning">{message}</p>
         <a
           href="/settings/billing"
-          className="text-sm font-medium underline text-amber-800 dark:text-amber-200 hover:opacity-80"
+          className="text-sm font-medium underline text-warning hover:opacity-80"
         >
           Upgrade
         </a>

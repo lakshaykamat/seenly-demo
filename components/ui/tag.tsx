@@ -7,11 +7,11 @@ const tagVariants = cva(
     variants: {
       tone: {
         neutral: "bg-muted text-muted-foreground",
-        info: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-        success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-        warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-        danger: "bg-red-500/10 text-red-700 dark:text-red-300",
-        violet: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+        info: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+        success: "bg-positive/10 text-positive",
+        warning: "bg-warning/10 text-warning",
+        danger: "bg-destructive/10 text-destructive",
+        primary: "bg-primary/10 text-primary",
         outline: "border border-border text-muted-foreground bg-transparent",
         custom: "",
       },

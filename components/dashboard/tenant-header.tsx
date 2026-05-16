@@ -10,9 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Command } from "lucide-react";
 import { RanklyMark } from "@/components/icons/rankly-mark";
-import { NotificationBell } from "./notification-bell";
 import { ActiveRunPill } from "./active-run-pill";
 
 export function TenantHeader() {
@@ -34,34 +32,18 @@ export function TenantHeader() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="hidden lg:inline-flex items-center gap-2 rounded-lg border border-border/70 bg-background/60 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Search"
-          >
-            <Command className="size-3.5" />
-            <span>Search</span>
-            <kbd className="ml-1 inline-flex h-4 items-center rounded border border-border/70 bg-background px-1 font-mono text-[10px] text-muted-foreground">
-              ⌘K
-            </kbd>
-          </button>
-
-          <NotificationBell />
-
-          <span
-            aria-hidden
-            className="mx-1 hidden sm:block h-5 w-px bg-border/80"
-          />
-
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <Avatar className="size-8 ring-1 ring-border/80 hover:ring-foreground/20 transition-shadow">
+                <button className="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-foreground/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Avatar className="size-7 ring-1 ring-border/80">
                     <AvatarFallback className="text-xs font-semibold bg-gradient-to-br from-primary/15 to-primary/5 text-primary">
-                      {user?.email?.charAt(0).toUpperCase() ?? "U"}
+                      {user?.name?.charAt(0).toUpperCase() ?? "U"}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="hidden sm:inline text-sm font-medium text-foreground/85">
+                    {user?.name}
+                  </span>
                 </button>
               }
             />
@@ -70,9 +52,12 @@ export function TenantHeader() {
                 <DropdownMenuLabel>
                   <div className="flex flex-col gap-1">
                     <p className="text-sm font-medium leading-none">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
                       {user?.email}
                     </p>
-                    <p className="text-xs text-muted-foreground capitalize">
+                    <p className="text-xs text-muted-foreground capitalize mt-1">
                       {user?.role} · {user?.plan} plan
                     </p>
                   </div>

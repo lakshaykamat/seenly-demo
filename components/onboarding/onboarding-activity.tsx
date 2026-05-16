@@ -90,7 +90,7 @@ export function OnboardingActivity({
   const elapsedClock = formatClock(elapsed);
 
   const heading = isDone
-    ? `Ready · Rankly score ${finalScore.toFixed(1)}`
+    ? `Ready. Rankly score ${finalScore.toFixed(1)}`
     : active.label(domain);
 
   return (
@@ -104,7 +104,7 @@ export function OnboardingActivity({
 
       <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
 
-      <h2 className="mt-10 font-semibold text-3xl md:text-4xl text-foreground leading-[1.1] tracking-tight">
+      <h2 className="mt-10 font-semibold text-3xl md:text-4xl text-foreground leading-[1.1] tracking-tight truncate">
         {heading}
       </h2>
       <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl">
@@ -113,11 +113,11 @@ export function OnboardingActivity({
 
       <div className="mt-8 relative h-[3px] w-full rounded-full bg-muted overflow-hidden">
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-150 ease-linear"
+          className="absolute inset-y-0 left-0 rounded-full bg-primary"
           style={{ width: `${percent}%` }}
         />
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-primary blur-md transition-[width] duration-150 ease-linear"
+          className="absolute inset-y-0 left-0 rounded-full bg-primary blur-md"
           style={{ width: `${percent}%`, opacity: 0.45 }}
         />
       </div>
@@ -140,7 +140,7 @@ export function OnboardingActivity({
                     className={cn(
                       "size-1.5 rounded-full",
                       s.state === "queued" && "bg-muted-foreground/30",
-                      s.state === "active" && "bg-emerald-500 animate-pulse",
+                      s.state === "active" && "bg-positive animate-pulse",
                       s.state === "done" && "bg-foreground/70"
                     )}
                   />
@@ -172,12 +172,12 @@ export function OnboardingActivity({
         <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/80">
           <span>live activity</span>
           <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="size-1.5 rounded-full bg-positive animate-pulse" />
             streaming
           </span>
         </div>
         <div className="mt-3 h-px w-full bg-border" />
-        <ul className="mt-2 font-mono text-[12.5px] leading-7">
+        <ul className="mt-2 font-mono text-[12.5px] leading-7 h-56 overflow-y-auto pr-1">
           {visibleEvents.length === 0 && (
             <li className="text-muted-foreground/60">waiting for activity…</li>
           )}
@@ -294,7 +294,7 @@ function StatusBadge({
   if (!status && !meta) return <span />;
   if (status === "cited") {
     return (
-      <span className="font-mono text-[11px] uppercase tracking-wider text-emerald-600">
+      <span className="font-mono text-[11px] uppercase tracking-wider text-positive">
         cited
       </span>
     );
@@ -308,7 +308,7 @@ function StatusBadge({
   }
   if (status === "warn") {
     return (
-      <span className="font-mono text-[11px] uppercase tracking-wider text-amber-600">
+      <span className="font-mono text-[11px] uppercase tracking-wider text-warning">
         warn
       </span>
     );
@@ -322,7 +322,7 @@ function StatusBadge({
   }
   if (status === "up") {
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600">
+      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-positive">
         <TrendingUp className="size-3" />
         {meta}
       </span>
@@ -330,7 +330,7 @@ function StatusBadge({
   }
   if (status === "down") {
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-rose-600">
+      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-negative">
         <TrendingDown className="size-3" />
         {meta}
       </span>

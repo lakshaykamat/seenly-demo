@@ -123,7 +123,7 @@ export default function PromptSandboxPage() {
       {/* Hero input card */}
       <div className="relative rounded-2xl bg-card ring-1 ring-border focus-within:ring-foreground/30 focus-within:shadow-lg transition-all p-5">
         <div className="flex items-start gap-3">
-          <Sparkles className="size-5 mt-3 shrink-0 text-[color:var(--pillar-ai)]" />
+          <Sparkles className="size-5 mt-3 shrink-0 text-primary" />
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -287,7 +287,7 @@ export default function PromptSandboxPage() {
                           {rate}%)
                         </p>
                       </button>
-                      <div className="text-[color:var(--pillar-ai)] shrink-0">
+                      <div className="text-primary shrink-0">
                         <Sparkline
                           data={history.map((h) =>
                             h.cited ? (h.position ?? 0) : 0

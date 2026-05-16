@@ -42,10 +42,10 @@ const FEATURE_LABEL: Record<string, string> = {
 };
 
 const INTENT_TONE: Record<string, string> = {
-  informational: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  commercial: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
-  transactional: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  navigational: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  informational: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  commercial: "bg-primary/10 text-primary",
+  transactional: "bg-positive/10 text-positive",
+  navigational: "bg-warning/10 text-warning",
 };
 
 function fmtDate(iso: string): string {

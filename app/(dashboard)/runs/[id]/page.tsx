@@ -601,7 +601,7 @@ export default function RunDetailPage({
           {/* Penalties notice */}
           {run.scores?.penalties_applied &&
             run.scores.penalties_applied.length > 0 && (
-              <div className="rounded-lg border border-yellow-500/30 bg-yellow-50/50 p-3 text-xs text-yellow-800 dark:bg-yellow-950/20 dark:text-yellow-200">
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
                 <span className="font-medium">Penalties applied:</span>{" "}
                 {run.scores.penalties_applied
                   .map((p) =>
@@ -624,10 +624,10 @@ export default function RunDetailPage({
 
           {/* Crawl fallback notice */}
           {run.results_meta?.crawl_status === "fallback" && (
-            <div className="rounded-lg border border-blue-500/30 bg-blue-50/50 p-3 text-xs text-blue-800 dark:bg-blue-950/20 dark:text-blue-200 flex items-center gap-2">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs text-primary flex items-center gap-2">
               <Info className="size-3.5 shrink-0" />
-              Site content couldn&apos;t be extracted (blocked or too thin) —
-              queries were generated from project settings instead.
+              Site content couldn&apos;t be extracted (blocked or too thin).
+              Queries were generated from project settings instead.
             </div>
           )}
 

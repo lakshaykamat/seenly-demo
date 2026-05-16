@@ -17,10 +17,10 @@ import {
 } from "@/lib/mocks/aiCitations";
 
 const SENTIMENT_TONE: Record<CitationSentiment, string> = {
-  favorable: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  favorable: "bg-positive/15 text-positive",
   neutral: "bg-muted text-foreground",
-  cautious: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  unfavorable: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+  cautious: "bg-warning/15 text-warning",
+  unfavorable: "bg-negative/15 text-negative",
 };
 
 function modelById(id: string) {
@@ -126,20 +126,11 @@ export default function PromptDetailPage({
       </Link>
 
       <div className="flex items-start gap-4">
-        <div
-          className="size-11 rounded-xl grid place-items-center shrink-0"
-          style={{
-            background: "var(--pillar-ai-soft)",
-            color: "var(--pillar-ai)",
-          }}
-        >
+        <div className="size-11 rounded-xl grid place-items-center shrink-0 bg-primary/10 text-primary">
           <Sparkles className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p
-            className="text-[11px] font-medium uppercase tracking-wide"
-            style={{ color: "var(--pillar-ai)" }}
-          >
+          <p className="text-[11px] font-medium uppercase tracking-wide text-primary">
             Monitored prompt · {prompt.set}
           </p>
           <h1 className="mt-0.5 text-2xl font-semibold tracking-tight">

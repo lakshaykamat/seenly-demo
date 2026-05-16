@@ -64,9 +64,9 @@ const STATUS_LABEL: Record<RecommendationStatus, string> = {
 };
 
 const STATUS_COLOR: Record<RecommendationStatus, string> = {
-  open: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  in_progress: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  done: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  open: "bg-primary/10 text-primary",
+  in_progress: "bg-warning/10 text-warning",
+  done: "bg-positive/10 text-positive",
   dismissed: "bg-muted text-muted-foreground",
 };
 
@@ -1091,7 +1091,7 @@ function ImpactChip({
   compact?: boolean;
 }) {
   const tone =
-    impact === "high" ? "violet" : impact === "medium" ? "info" : "neutral";
+    impact === "high" ? "primary" : impact === "medium" ? "info" : "neutral";
   return (
     <Tag tone={tone} className="font-semibold capitalize tabular-nums">
       {impact}
