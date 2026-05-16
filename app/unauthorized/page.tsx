@@ -13,7 +13,7 @@ export default function UnauthorizedPage() {
       <Card className="w-full max-w-sm text-center border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="space-y-1">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-xl font-semibold tracking-tight text-primary mb-4 block"
           >
             Rankly

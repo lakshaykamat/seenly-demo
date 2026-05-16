@@ -88,7 +88,6 @@ export function OnboardingActivity({
   }, [elapsed]);
 
   const elapsedClock = formatClock(elapsed);
-  const totalClock = formatClock(totalMs);
 
   const heading = isDone
     ? `Ready · Rankly score ${finalScore.toFixed(1)}`
@@ -100,8 +99,6 @@ export function OnboardingActivity({
         <span className="uppercase">{domain}</span>
         <span className="tabular-nums">
           elapsed <span className="text-foreground">{elapsedClock}</span>
-          <span className="mx-1.5 text-border">/</span>
-          {totalClock}
         </span>
       </div>
 

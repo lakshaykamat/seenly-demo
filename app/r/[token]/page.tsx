@@ -19,7 +19,7 @@ export default async function SharedReportPage({
       <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-6 h-14">
           <Link
-            href="/"
+            href="/dashboard"
             className="text-lg font-semibold tracking-tight text-primary"
           >
             Rankly
@@ -34,7 +34,7 @@ export default async function SharedReportPage({
         <ReportView report={report} />
         <footer className="pt-8 border-t text-center text-xs text-muted-foreground">
           Shared from{" "}
-          <Link href="/" className="text-primary hover:underline">
+          <Link href="/dashboard" className="text-primary hover:underline">
             Rankly
           </Link>{" "}
           · {report.subtitle}

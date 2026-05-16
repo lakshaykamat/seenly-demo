@@ -15,17 +15,15 @@ export default function DashboardLayout({
   return (
     <QueryProvider>
       <AuthProvider>
-        <OnboardingGate>
-          <div className="min-h-screen">
-            <TenantHeader />
-            <div className="max-w-7xl mx-auto flex gap-8 px-6 py-8">
-              <SidebarNav />
-              <main className="flex-1 min-w-0 space-y-8 pb-20 md:pb-0">
-                {children}
-              </main>
-            </div>
+        <div className="min-h-screen">
+          <TenantHeader />
+          <div className="max-w-7xl mx-auto flex gap-8 px-6 py-8">
+            <SidebarNav />
+            <main className="flex-1 min-w-0 space-y-8 pb-20 md:pb-0">
+              <OnboardingGate>{children}</OnboardingGate>
+            </main>
           </div>
-        </OnboardingGate>
+        </div>
       </AuthProvider>
     </QueryProvider>
   );

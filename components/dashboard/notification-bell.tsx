@@ -115,9 +115,10 @@ export function NotificationBell() {
       >
         <Bell className="size-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-[color:var(--negative)] text-[10px] font-semibold text-white grid place-items-center px-1 tabular-nums">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
+          <span
+            aria-hidden
+            className="absolute top-1 right-1 size-2 rounded-full bg-[color:var(--negative)] ring-2 ring-background"
+          />
         )}
       </button>
 
