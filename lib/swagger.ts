@@ -6,10 +6,10 @@ export function getApiDocs() {
     definition: {
       openapi: "3.0.0",
       info: {
-        title: "Seenly API",
+        title: "Rankly API",
         version: "1.0.0",
         description:
-          "Seenly API documentation. All endpoints except /api/health require authentication via Supabase session cookie.",
+          "Rankly API documentation. All endpoints except /api/health require authentication via Supabase session cookie.",
       },
       servers: [{ url: "/", description: "Current origin" }],
     },

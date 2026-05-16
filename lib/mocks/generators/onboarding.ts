@@ -126,7 +126,7 @@ export const FIRST_RUN_STAGES: OnboardingStage[] = [
   {
     key: "done",
     startMs: 30000,
-    label: () => "Ready — Seenly score 74.6 · routing to dashboard…",
+    label: () => "Ready — Rankly score 74.6 · routing to dashboard…",
     sublines: ["Opening your workspace"],
   },
 ];
@@ -214,7 +214,7 @@ export const FIRST_RUN_ACTIVITY: ActivityEvent[] = [
   { atMs: 26700, kind: "cite", source: "share", message: "citation share 44%" },
 
   { atMs: 27200, kind: "sys", source: "score", message: "AVS 71.4 · AEO 76.1" },
-  { atMs: 27800, kind: "sys", source: "score", message: "Seenly score 74.6" },
+  { atMs: 27800, kind: "sys", source: "score", message: "Rankly score 74.6" },
 
   { atMs: 28700, kind: "sys", source: "workspace", message: "seeded 23 recommendations" },
   { atMs: 29200, kind: "sys", source: "workspace", message: "wired 7 alert rules" },

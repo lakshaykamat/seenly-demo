@@ -12,7 +12,15 @@ import type {
 import type { Project } from "@/lib/api/projects";
 import { COMPANY } from "./company";
 import { daysAgo } from "./time";
-import { clamp, round1, round2 } from "./rng";
+import {
+  clamp,
+  round1,
+  round2,
+  makeRng,
+  hash,
+  pickWeighted,
+  gaussian,
+} from "./rng";
 import { humanizePath } from "./urls";
 
 export const CURRENT_USER: AuthUser = {
@@ -98,18 +106,41 @@ const RUN_SEEDS: RunSeed[] = [
 ];
 
 const ENGINES = ["openai", "anthropic", "google"] as const;
-const SENTIMENTS: Array<AiResult["sentiment"]> = [
-  "favorable",
-  "neutral",
-  "cautious",
-  "unfavorable",
+
+// Sentiment weighting: brand pages skew favorable (it's our own content cited),
+// competitor pages skew mixed-to-cautious. Real LLM-cited sources reflect the
+// rhetorical posture of the underlying page; uniform distributions are a
+// dead giveaway of synthetic data.
+const BRAND_SENTIMENTS: Array<{
+  value: AiResult["sentiment"];
+  weight: number;
+}> = [
+  { value: "favorable", weight: 0.55 },
+  { value: "neutral", weight: 0.32 },
+  { value: "cautious", weight: 0.1 },
+  { value: "unfavorable", weight: 0.03 },
 ];
-const CRAWL_STATUSES: Array<CrawlPage["crawl_status"]> = [
-  "ok",
-  "ok",
-  "ok",
-  "partial",
-  "blocked",
+const COMPETITOR_SENTIMENTS: Array<{
+  value: AiResult["sentiment"];
+  weight: number;
+}> = [
+  { value: "neutral", weight: 0.42 },
+  { value: "favorable", weight: 0.28 },
+  { value: "cautious", weight: 0.22 },
+  { value: "unfavorable", weight: 0.08 },
+];
+
+// Real-world crawl outcomes lean OK but with a meaningful tail of partial /
+// blocked / 5xx outcomes. Weight reflects roughly what an AI-crawler matrix
+// looks like for a mid-traffic site.
+const CRAWL_STATUS_WEIGHTS: Array<{
+  value: CrawlPage["crawl_status"];
+  weight: number;
+}> = [
+  { value: "ok", weight: 0.62 },
+  { value: "partial", weight: 0.22 },
+  { value: "blocked", weight: 0.11 },
+  { value: "unreachable", weight: 0.05 },
 ];
 
 // Brand-aware citation snippets generated from competitor list + brand.
@@ -170,14 +201,33 @@ const RUN_QUERIES: Array<{
 
 function buildScores(seed: RunSeed): RunScores | null {
   if (seed.status !== "completed") return null;
-  const avs = clamp(seed.base + seed.scoreOffset, 0, 100);
-  const aeo = clamp(seed.base - 6 + seed.scoreOffset * 1.5, 0, 100);
-  const sentiment = clamp(seed.base + 8 + seed.scoreOffset, 0, 100);
+  // Per-run RNG seeded from id — each run has stable but distinct noise so
+  // sub-scores don't move in lockstep.
+  const rng = makeRng(hash(`scores:${seed.id}`));
+  const avs = clamp(
+    seed.base + seed.scoreOffset + gaussian(rng, 0, 2.1),
+    0,
+    100
+  );
+  const aeo = clamp(
+    seed.base - 6 + seed.scoreOffset * 1.5 + gaussian(rng, 0, 2.6),
+    0,
+    100
+  );
+  const sentiment = clamp(
+    seed.base + 8 + seed.scoreOffset + gaussian(rng, 0, 1.8),
+    0,
+    100
+  );
   const base =
     Math.round((avs * 0.45 + aeo * 0.35 + sentiment * 0.2) * 10) / 10;
   const penalties: string[] = [];
   if (seed.scoreOffset < 0) penalties.push("missing_schema");
   if (seed.base < 60) penalties.push("thin_content");
+  if (rng() < 0.18) penalties.push("crawl_partial");
+  // Confidence clusters tightly in the 0.7–0.95 range with rare dips.
+  const avsConf = clamp(gaussian(rng, 0.86, 0.05), 0.55, 0.98);
+  const aeoConf = clamp(gaussian(rng, 0.82, 0.06), 0.5, 0.97);
   return {
     run_id: seed.id,
     avs_score: round1(avs),
@@ -186,8 +236,8 @@ function buildScores(seed: RunSeed): RunScores | null {
     seenly_score_base: base,
     seenly_score_final: round1(base - penalties.length * 1.4),
     penalties_applied: penalties,
-    avs_confidence: round2(0.78 + (seed.scoreOffset + 4) * 0.015),
-    aeo_confidence: round2(0.71 + (seed.scoreOffset + 4) * 0.018),
+    avs_confidence: round2(avsConf),
+    aeo_confidence: round2(aeoConf),
     completed_at: daysAgo(seed.daysAgo, 0, -38),
   };
 }
@@ -232,41 +282,71 @@ const COMPETITOR_POOL = COMPANY.competitors.map((c) => c.domain);
 
 function buildAiResults(runId: string, seed: RunSeed): AiResult[] {
   const targetDomain = PROJECTS[seed.projectIndex].domain.split("/")[0];
+  const rng = makeRng(hash(`ai:${runId}`));
   const results: AiResult[] = [];
   let idCounter = 0;
   RUN_QUERIES.forEach((query, qIdx) => {
     ENGINES.forEach((engine, eIdx) => {
-      const seedMix = (qIdx * 3 + eIdx + seed.base) % 7;
-      const isDegraded = seedMix === 5 && qIdx > 6;
-      const isEmpty = seedMix === 6 && qIdx > 7;
-      const isTargetCitation =
-        !isDegraded && !isEmpty && (qIdx + eIdx) % 4 !== 3;
+      // ~8% degraded (timeout / safety filter), ~5% empty (engine returned no
+      // grounded answer). Both are realistic LLM eval outcomes.
+      const draw = rng();
+      const isDegraded = draw < 0.08;
+      const isEmpty = !isDegraded && draw < 0.13;
+      // Brand wins ~58% of citations on its own monitored queries — real
+      // brand-aware datasets hover here, not at 75%+ which reads as planted.
+      const isTargetCitation = !isDegraded && !isEmpty && rng() < 0.58;
       const citedDomain =
         isDegraded || isEmpty
           ? null
           : isTargetCitation
             ? targetDomain
-            : COMPETITOR_POOL[(qIdx + eIdx + seed.base) % COMPETITOR_POOL.length];
+            : COMPETITOR_POOL[
+                Math.floor(rng() * COMPETITOR_POOL.length) %
+                  COMPETITOR_POOL.length
+              ];
       const snippets = citedDomain ? snippetsFor(citedDomain) : null;
-      const snippet = snippets ? snippets[(qIdx + eIdx) % snippets.length] : null;
+      const snippet = snippets
+        ? snippets[Math.floor(rng() * snippets.length) % snippets.length]
+        : null;
+      const sentiment =
+        isDegraded || isEmpty
+          ? null
+          : pickWeighted(
+              rng,
+              isTargetCitation ? BRAND_SENTIMENTS : COMPETITOR_SENTIMENTS
+            );
+      // Position distribution: most citations at #1–#3, rare appearances at
+      // #4–#6. Real LLM citations rarely surface anything beyond top results.
+      const positionRoll = rng();
+      const position =
+        isDegraded || isEmpty
+          ? null
+          : positionRoll < 0.46
+            ? 1
+            : positionRoll < 0.74
+              ? 2
+              : positionRoll < 0.9
+                ? 3
+                : positionRoll < 0.97
+                  ? 4
+                  : 5;
       results.push({
         id: `air_${runId.slice(4)}_${(idCounter++).toString(36).padStart(3, "0")}`,
         run_id: runId,
         query: query.text,
         query_source: "seenly_suggested",
         engine,
-        position: isDegraded || isEmpty ? null : 1 + ((qIdx + eIdx) % 4),
+        position,
         cited_domain: citedDomain,
         snippet,
-        sentiment:
-          isDegraded || isEmpty
-            ? null
-            : SENTIMENTS[
-                (qIdx + eIdx + (isTargetCitation ? 0 : 2)) % SENTIMENTS.length
-              ],
+        sentiment,
         is_target: isTargetCitation,
         is_degraded: isDegraded,
       });
+      // qIdx/eIdx are no longer used inside the loop body — kept as map
+      // variables so the iteration shape (queries × engines) is unchanged.
+      void qIdx;
+      void eIdx;
     });
   });
   return results;
@@ -279,48 +359,76 @@ const CRAWL_PATHS = COMPANY.sitePages
 
 function buildCrawlPages(runId: string, seed: RunSeed): CrawlPage[] {
   const domain = PROJECTS[seed.projectIndex].domain.split("/")[0];
+  const rng = makeRng(hash(`crawl:${runId}`));
   return CRAWL_PATHS.slice(0, 12).map((path, i) => {
-    const status = CRAWL_STATUSES[(i + seed.base) % CRAWL_STATUSES.length];
+    const status = pickWeighted(rng, CRAWL_STATUS_WEIGHTS);
     const isOk = status === "ok";
+    const isPartial = status === "partial";
     return {
       id: `crp_${runId.slice(4)}_${i.toString(36).padStart(2, "0")}`,
       run_id: runId,
       url: `https://${domain}${path}`,
       crawl_status: status,
       confidence: isOk
-        ? round2(0.78 + (i % 6) * 0.03)
-        : status === "partial"
-          ? 0.42
+        ? round2(clamp(gaussian(rng, 0.88, 0.06), 0.6, 0.99))
+        : isPartial
+          ? round2(clamp(gaussian(rng, 0.48, 0.09), 0.2, 0.7))
           : null,
-      extraction_method: isOk ? (i % 4 === 3 ? "js_render" : "html") : null,
-      text_length: isOk ? 1200 + i * 187 + (seed.base % 50) * 19 : null,
+      extraction_method: isOk ? (rng() < 0.28 ? "js_render" : "html") : null,
+      // Real page text length is heavy-tailed: most pages 800–3000 chars, a
+      // few long-form posts 6000+. Log-ish skew via exponential transform.
+      text_length: isOk
+        ? Math.round(900 + Math.pow(rng(), 1.8) * 5800)
+        : null,
       h1: isOk ? humanizePath(path, domain) : null,
       h2s: isOk
         ? ["How it works", "Key benefits", "Built for modern teams"].slice(
             0,
-            1 + (i % 3)
+            1 + Math.floor(rng() * 3)
           )
         : null,
-      has_faq: isOk && i % 3 === 0,
-      has_schema: isOk && i % 2 === 0,
+      has_faq: isOk && rng() < 0.32,
+      has_schema: isOk && rng() < 0.66,
       schema_types:
-        isOk && i % 2 === 0
-          ? ["WebPage", i % 4 === 0 ? "FAQPage" : "Article"]
+        isOk && rng() < 0.66
+          ? ["WebPage", rng() < 0.35 ? "FAQPage" : "Article"]
           : null,
-      internal_link_count: isOk ? 8 + ((i * 7 + seed.base) % 24) : null,
-      page_quality_score: isOk ? round1(64 + ((i * 11 + seed.base) % 28)) : null,
+      // Internal link count clusters around 14 with long tail to 40+; broken
+      // navs occasionally drop to <5.
+      internal_link_count: isOk
+        ? Math.max(2, Math.round(gaussian(rng, 16, 7)))
+        : null,
+      page_quality_score: isOk
+        ? round1(clamp(gaussian(rng, 76, 9), 38, 98))
+        : null,
     };
   });
 }
 
 function buildCompetitorsList(runId: string, seed: RunSeed): Competitor[] {
+  const rng = makeRng(hash(`comp:${runId}`));
+  // One or two competitors should dominate share-of-voice; the rest tail off
+  // unevenly. Generate base counts then sort — natural Zipf-ish distribution
+  // rather than a deterministic decline.
+  const counts = COMPETITOR_POOL.slice(0, 7).map((_, i) => {
+    const ceiling = 22 - i * 1.4;
+    return Math.max(
+      1,
+      Math.round(clamp(gaussian(rng, ceiling, 3.4), 1, 30))
+    );
+  });
+  counts.sort((a, b) => b - a);
   return COMPETITOR_POOL.slice(0, 7).map((domain, i) => ({
     id: `cmp_${runId.slice(4)}_${i.toString(36)}`,
     run_id: runId,
     domain,
-    mention_count: 18 - i * 2 + ((seed.base + i) % 5),
+    mention_count: counts[i],
     query_count: 10,
-    avg_position: round1(1.4 + i * 0.35 + ((seed.base + i) % 3) * 0.2),
+    // Avg position widens for lower-share competitors — they show up less
+    // frequently and tend to land deeper when they do.
+    avg_position: round1(
+      clamp(1.3 + i * 0.42 + gaussian(rng, 0, 0.4) + seed.scoreOffset * 0.05, 1, 7)
+    ),
   }));
 }
 
@@ -370,12 +478,21 @@ export const RUN_DETAIL_BY_ID: Record<string, RunDetail> = Object.fromEntries(
               tokens_out: 0,
             }
           : scores
-            ? {
-                duration_ms: 184320 + seed.base * 271,
-                ai_calls: 30,
-                tokens_in: 18420 + seed.base * 18,
-                tokens_out: 6740 + seed.base * 9,
-              }
+            ? (() => {
+                const rng = makeRng(hash(`meta:${seed.id}`));
+                // Real pipeline runs vary 2.5–6 min based on page count and
+                // engine response time — a fixed offset by base looks fake.
+                const duration_ms = Math.round(
+                  150_000 + gaussian(rng, 80_000, 28_000)
+                );
+                const ai_calls = 28 + Math.floor(rng() * 6);
+                return {
+                  duration_ms,
+                  ai_calls,
+                  tokens_in: Math.round(15_800 + gaussian(rng, 4_200, 1_400)),
+                  tokens_out: Math.round(6_100 + gaussian(rng, 1_500, 580)),
+                };
+              })()
             : null,
         created_at: list.created_at,
         updated_at: list.updated_at,

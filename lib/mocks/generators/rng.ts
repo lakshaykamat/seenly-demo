@@ -74,6 +74,57 @@ export function randWalk(
   return out;
 }
 
+/**
+ * Step walk — real SERP/citation series are choppy: long flat stretches
+ * punctuated by sharp moves (algorithm updates, content ships, links land).
+ * `jumpChance` is the per-day probability of a discrete shift; `jumpScale` is
+ * its magnitude. Tiny tick noise fills the flat days so charts don't look
+ * dead.
+ */
+export function stepWalk(
+  start: number,
+  days: number,
+  seed: number,
+  opts: {
+    jumpChance?: number;
+    jumpScale?: number;
+    tickNoise?: number;
+    bounds?: [number, number];
+    drift?: number;
+  } = {}
+): number[] {
+  const {
+    jumpChance = 0.18,
+    jumpScale = 4.5,
+    tickNoise = 0.35,
+    bounds = [1, 100],
+    drift = 0,
+  } = opts;
+  const rng = makeRng(seed);
+  const out: number[] = [];
+  let x = start;
+  for (let i = 0; i < days; i++) {
+    if (rng() < jumpChance) {
+      x += (rng() * 2 - 1) * jumpScale;
+    }
+    x += (rng() * 2 - 1) * tickNoise + drift;
+    x = Math.max(bounds[0], Math.min(bounds[1], x));
+    out.push(Math.round(x * 10) / 10);
+  }
+  return out;
+}
+
+/**
+ * Approximate gaussian via 12-sum CLT. Mean `mu`, stddev `sigma`. Used for
+ * scores, confidence, and other quantities that cluster around a center in
+ * real data rather than uniformly spreading.
+ */
+export function gaussian(rng: () => number, mu: number, sigma: number): number {
+  let s = 0;
+  for (let i = 0; i < 12; i++) s += rng();
+  return mu + (s - 6) * sigma;
+}
+
 export function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }

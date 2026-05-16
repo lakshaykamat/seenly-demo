@@ -1,4 +1,4 @@
-import { SeenlyMark } from "@/components/icons/seenly-mark";
+import { RanklyMark } from "@/components/icons/rankly-mark";
 import { OnboardingLanding } from "@/components/onboarding/onboarding-landing";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +14,8 @@ export default function OnboardingPage() {
           href="/onboarding"
           className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground"
         >
-          <SeenlyMark className="size-7 text-primary" />
-          Seenly
+          <RanklyMark className="size-7 text-primary" />
+          Rankly
         </a>
         <a
           href="/login"
@@ -45,8 +45,8 @@ function Footer() {
     <footer className="relative z-10 border-t border-border/60 bg-background/30 backdrop-blur-sm">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground sm:flex-row md:px-10">
         <div className="flex items-center gap-2">
-          <SeenlyMark className="size-5 text-primary" />
-          <span className="font-medium text-foreground/80">Seenly</span>
+          <RanklyMark className="size-5 text-primary" />
+          <span className="font-medium text-foreground/80">Rankly</span>
           <span className="text-muted-foreground/60">© 2026</span>
         </div>
         <nav className="flex items-center gap-5">

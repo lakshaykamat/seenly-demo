@@ -91,7 +91,7 @@ export function OnboardingActivity({
   const totalClock = formatClock(totalMs);
 
   const heading = isDone
-    ? `Ready · Seenly score ${finalScore.toFixed(1)}`
+    ? `Ready · Rankly score ${finalScore.toFixed(1)}`
     : active.label(domain);
 
   return (
@@ -107,7 +107,7 @@ export function OnboardingActivity({
 
       <div className="mt-3 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
 
-      <h2 className="mt-10 font-display text-3xl md:text-4xl text-foreground leading-[1.1] tracking-tight">
+      <h2 className="mt-10 font-semibold text-3xl md:text-4xl text-foreground leading-[1.1] tracking-tight">
         {heading}
       </h2>
       <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl">

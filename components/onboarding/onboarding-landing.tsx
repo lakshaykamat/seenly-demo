@@ -80,9 +80,18 @@ export function OnboardingLanding() {
         </span>
       </div>
 
-      <h1 className="mt-6 text-foreground font-display font-normal leading-[1.05] tracking-tight text-center text-[clamp(2.5rem,5.5vw,4.5rem)]">
+      <h1 className="mt-6 text-foreground font-semibold leading-[1.05] tracking-tight text-center text-[clamp(2.5rem,5.5vw,4.5rem)]">
         How does AI{" "}
-        <span className="text-primary italic">recommend</span>
+        <span
+          className="italic inline-block bg-clip-text text-transparent pr-[0.18em]"
+          style={{
+            backgroundImage:
+              "linear-gradient(105deg, #2563eb 0%, #4f46e5 38%, #6366f1 62%, #38bdf8 100%)",
+            WebkitBackgroundClip: "text",
+          }}
+        >
+          recommend
+        </span>
         <br className="hidden sm:block" />
         <span className="sm:hidden"> </span>
         your brand?

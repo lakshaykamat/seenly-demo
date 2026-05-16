@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-export function SeenlyMark({
+export function RanklyMark({
   className,
   ...props
 }: SVGProps<SVGSVGElement>) {
@@ -15,7 +15,7 @@ export function SeenlyMark({
     >
       <defs>
         <linearGradient
-          id="seenly-mark-grad"
+          id="rankly-mark-grad"
           x1="3"
           y1="3"
           x2="21"
@@ -32,23 +32,40 @@ export function SeenlyMark({
         width="20"
         height="20"
         rx="5.5"
-        fill="url(#seenly-mark-grad)"
+        fill="url(#rankly-mark-grad)"
+      />
+      <rect
+        x="6"
+        y="14"
+        width="2.6"
+        height="4.5"
+        rx="0.9"
+        fill="var(--background, #ffffff)"
+      />
+      <rect
+        x="10.7"
+        y="11"
+        width="2.6"
+        height="7.5"
+        rx="0.9"
+        fill="var(--background, #ffffff)"
+      />
+      <rect
+        x="15.4"
+        y="7.5"
+        width="2.6"
+        height="11"
+        rx="0.9"
+        fill="var(--background, #ffffff)"
       />
       <path
-        d="M15.6 8.2c-.85-.85-2.1-1.4-3.6-1.4-2.2 0-3.9 1.2-3.9 3 0 1.7 1.4 2.5 3.6 3 2.4.55 4.2 1.35 4.2 3.3 0 1.9-1.8 3.1-4.1 3.1-1.7 0-3.1-.6-4-1.55"
+        d="M6.2 11.2 L11.6 7.6 L17.4 4.8"
         stroke="var(--background, #ffffff)"
-        strokeWidth="1.85"
+        strokeWidth="1.4"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-      />
-      <circle cx="18.5" cy="5.5" r="1.5" fill="currentColor" />
-      <circle
-        cx="18.5"
-        cy="5.5"
-        r="1.5"
-        fill="var(--background, #ffffff)"
-        fillOpacity="0.25"
+        opacity="0.55"
       />
     </svg>
   );

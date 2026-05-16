@@ -1,6 +1,6 @@
 import { COMPANY } from "./company";
 import { daysAgo } from "./time";
-import { randWalk, hash } from "./rng";
+import { randWalk, stepWalk, hash, makeRng } from "./rng";
 import { brandUrl } from "./urls";
 
 export type SerpFeature =
@@ -45,15 +45,21 @@ export const KEYWORDS: KeywordRow[] = COMPANY.keywordSeeds.map((seed, i) => {
   // Seed the per-keyword walk by the keyword text — reordering the seed list
   // therefore does not shuffle history values.
   const walkSeed = hash(`kw:${seed.keyword}`);
-  const history = randWalk(
-    seed.start + Math.abs(seed.drift),
-    30,
-    walkSeed,
-    1.4
-  ).map((v, idx) => {
+  // Real SERP rank history is choppy: long flat stretches punctuated by step
+  // changes when a competitor ships content / Google rolls an update. The
+  // series still drifts toward the current `seed.start` value but no longer
+  // looks like a hand-drawn smooth curve.
+  const rawHistory = stepWalk(seed.start + seed.drift, 30, walkSeed, {
+    jumpChance: 0.14,
+    jumpScale: Math.max(2.2, Math.abs(seed.drift) * 1.6),
+    tickNoise: 0.45,
+    bounds: [1, 100],
+    drift: -seed.drift / 60,
+  });
+  const history = rawHistory.map((v, idx) => {
     const target = seed.start;
     const t = idx / 29;
-    return Math.round((v * (1 - t * 0.4) + target * t * 0.4) * 10) / 10;
+    return Math.round((v * (1 - t * 0.35) + target * t * 0.35) * 10) / 10;
   });
   const position = seed.start <= 100 ? Math.round(seed.start * 10) / 10 : null;
   const previousPosition =
@@ -63,6 +69,16 @@ export const KEYWORDS: KeywordRow[] = COMPANY.keywordSeeds.map((seed, i) => {
     competitorRanks[d] = seed.competitorBases[d] ?? null;
   });
   const url = seed.urlPath ? brandUrl(seed.urlPath, seed.urlHostKey) : null;
+  // Spread `updatedAt` realistically across the last two weeks — high-volume
+  // keywords get refreshed daily, niche ones every 7–14 days. Seeded by hash
+  // so it's stable.
+  const refreshRng = makeRng(hash(`refresh:${seed.keyword}`));
+  const refreshDays =
+    seed.volume > 3000
+      ? Math.floor(refreshRng() * 3)
+      : seed.volume > 800
+        ? Math.floor(refreshRng() * 7)
+        : 3 + Math.floor(refreshRng() * 11);
   return {
     id,
     keyword: seed.keyword,
@@ -78,7 +94,7 @@ export const KEYWORDS: KeywordRow[] = COMPANY.keywordSeeds.map((seed, i) => {
     history,
     competitorRanks,
     cannibalized: seed.cannibalized ?? false,
-    updatedAt: daysAgo(i % 3),
+    updatedAt: daysAgo(refreshDays, (i * 7) % 23),
   };
 });
 
@@ -91,26 +107,56 @@ export interface VisibilitySnapshot {
   serpFeatureOwnership: number;
 }
 
+// Visibility trend uses bounded random walks per metric so the chart shows
+// realistic local noise (1–2 pt day-over-day) on top of a slow upward drift,
+// rather than a clean periodic wave that's a dead giveaway of synthetic data.
+const TREND_VIS = stepWalk(42, 30, hash("trend:visibility"), {
+  jumpChance: 0.12,
+  jumpScale: 3.2,
+  tickNoise: 0.7,
+  bounds: [30, 90],
+  drift: 0.78,
+});
+const TREND_SOV = stepWalk(18, 30, hash("trend:sov"), {
+  jumpChance: 0.1,
+  jumpScale: 2.1,
+  tickNoise: 0.5,
+  bounds: [10, 45],
+  drift: 0.36,
+});
+const TREND_TOP3 = stepWalk(4, 30, hash("trend:top3"), {
+  jumpChance: 0.08,
+  jumpScale: 1.4,
+  tickNoise: 0.3,
+  bounds: [2, 18],
+  drift: 0.28,
+});
+const TREND_TOP10 = stepWalk(12, 30, hash("trend:top10"), {
+  jumpChance: 0.1,
+  jumpScale: 2.2,
+  tickNoise: 0.4,
+  bounds: [8, 36],
+  drift: 0.42,
+});
+const TREND_FEATURES = stepWalk(11, 30, hash("trend:features"), {
+  jumpChance: 0.07,
+  jumpScale: 1.6,
+  tickNoise: 0.35,
+  bounds: [4, 30],
+  drift: 0.38,
+});
+
 export const VISIBILITY_TREND: VisibilitySnapshot[] = Array.from({
   length: 30,
 }).map((_, i) => {
   const day = 29 - i;
-  const t = i / 29;
-  const visibility =
-    Math.round((42 + t * 24 + Math.sin(i * 0.5) * 2.4) * 10) / 10;
-  const shareOfVoice =
-    Math.round((18 + t * 11 + Math.cos(i * 0.6) * 1.6) * 10) / 10;
-  const topThree = Math.round(4 + t * 9 + Math.sin(i * 0.7) * 1.2);
-  const topTen = Math.round(12 + t * 14 + Math.cos(i * 0.45) * 1.8);
-  const serpFeatureOwnership =
-    Math.round((11 + t * 12 + Math.sin(i * 0.3) * 1.4) * 10) / 10;
   return {
     date: daysAgo(day),
-    visibility,
-    shareOfVoice,
-    topThree,
-    topTen,
-    serpFeatureOwnership,
+    visibility: TREND_VIS[i],
+    shareOfVoice: TREND_SOV[i],
+    topThree: Math.round(TREND_TOP3[i]),
+    topTen: Math.round(TREND_TOP10[i]),
+    serpFeatureOwnership: TREND_FEATURES[i],
   };
 });
 
@@ -146,4 +192,4 @@ export const TOP_MOVERS = {
     .slice(0, 5),
 };
 
-export { randWalk };
+export { randWalk, stepWalk };

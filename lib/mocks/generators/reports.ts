@@ -144,7 +144,7 @@ const PERIOD_DATA: Omit<Seed, "period">[] = [
   {
     status: "ready",
     visibility: 78.4,
-    visibilityDelta: 4.2,
+    visibilityDelta: 5.3,
     citation: 31.6,
     citationDelta: 2.8,
     understanding: 84.1,
@@ -197,20 +197,19 @@ const PERIOD_DATA: Omit<Seed, "period">[] = [
       ],
     },
   },
-  // index 1 — last month
+  // index 1 — last month (small dip — Google update + Claude prompt rotation)
   {
     status: "ready",
-    visibility: 74.2,
-    visibilityDelta: 2.7,
+    visibility: 73.1,
+    visibilityDelta: -1.1,
     citation: 28.8,
-    citationDelta: 1.5,
+    citationDelta: -0.4,
     understanding: 82.7,
     understandingDelta: 2.1,
     rank: 8.3,
-    rankDelta: -0.6,
+    rankDelta: 0.4,
     narrative: {
-      summary:
-        "Last month delivered steady gains. Schema coverage moved to 84% after Organization sameAs links shipped. The case study hub entered top 5 for three commercial queries. ChatGPT citation rate stable at 34%; Claude began climbing.",
+      summary: `Visibility dipped 1.1 points as Google's April core update shuffled commercial-intent SERPs and ${primary.name} reclaimed an AEO snippet. Underlying AI Understanding kept climbing — Organization sameAs links shipped and schema coverage moved to 84%. ChatGPT citation rate held at 34%; Claude began climbing.`,
       wins: [
         {
           title: "Organization schema with sameAs links shipped",
@@ -513,9 +512,23 @@ const RECIPIENT_BASE = [
   ...COMPANY.team.filter((t) => t.role === "executive").map((t) => t.email),
 ];
 
+// Real reports vary in length based on which sections expanded — the
+// quarterly-review-style October & May reports run longer, planning-month
+// reports shorter. No mod-3 pattern.
+const REPORT_PAGE_LENGTHS = [16, 14, 11, 13, 10, 12];
+// Share-view taper: most-recent report still being read this week, older
+// reports taper gradually. Real exec reports get read 30–50 times in week 1,
+// then 5–10 times/month, then long-tail.
+const REPORT_SHARE_VIEWS = [38, 24, 16, 9, 4, 2];
+
 export const REPORTS: Report[] = SEEDS.map((s, i) => {
   const generatedAt = periodEnd(s.period);
-  const pages = 12 + (i % 3);
+  const pages = REPORT_PAGE_LENGTHS[i] ?? 12;
+  const shareViews = REPORT_SHARE_VIEWS[i] ?? 0;
+  // Most recent viewing: 1–4 days ago for fresh reports, scaling out for
+  // older ones — same calendar gap that's intuitive in a real product.
+  const lastViewedOffsetMs =
+    shareViews > 0 ? (1 + i * 2.4) * 86_400_000 : 0;
   return {
     id: `rep_${s.period.replace("-", "")}_${(i + 1).toString().padStart(2, "0")}`,
     period: s.period,
@@ -526,12 +539,12 @@ export const REPORTS: Report[] = SEEDS.map((s, i) => {
     generatedById: MEMBERS[i % MEMBERS.length].id,
     pages,
     shareToken: SHARE_TOKENS[i % SHARE_TOKENS.length],
-    shareEnabled: i < 3,
-    shareViews: [42, 17, 8, 0, 0, 0][i] ?? 0,
+    shareEnabled: i < 4,
+    shareViews,
     shareLastViewedAt:
-      i < 3
+      shareViews > 0
         ? new Date(
-            new Date(generatedAt).getTime() + (i + 2) * 86_400_000
+            new Date(generatedAt).getTime() + lastViewedOffsetMs
           ).toISOString()
         : null,
     kpis: buildKpis(s),

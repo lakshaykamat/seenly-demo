@@ -15,7 +15,6 @@ import { useRecommendations } from "@/lib/api/recommendations";
 import { Can } from "@/components/can";
 import { UpgradeMessage } from "@/components/upgrade-message";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -37,6 +36,7 @@ import {
   Network,
   AlertTriangle,
   Trophy,
+  ChevronRight,
 } from "lucide-react";
 import type { QuotaResponse } from "@/types";
 import type {
@@ -161,7 +161,7 @@ export default function DashboardPage() {
       {/* Hero KPI strip */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiTile
-          label="Seenly score"
+          label="Rankly score"
           value={latestRun?.seenly_score ?? 0}
           decimals={1}
           delta={seenlyDelta}
@@ -245,15 +245,27 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-medium">
-              Top recommendations
-            </CardTitle>
+          <CardHeader className="pb-3 flex flex-row items-start justify-between gap-3">
+            <div className="space-y-0.5 min-w-0">
+              <CardTitle className="text-base font-semibold">
+                Top recommendations
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                {topRecs.length} of{" "}
+                {
+                  recommendations.filter(
+                    (r) => r.status === "open" || r.status === "in_progress"
+                  ).length
+                }{" "}
+                open · ranked by impact
+              </p>
+            </div>
             <Link
               href="/recommendations"
-              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+              className="group inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0"
             >
-              View all <ArrowRight className="size-3" />
+              View all
+              <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </CardHeader>
           <CardContent className="p-0">
@@ -262,7 +274,7 @@ export default function DashboardPage() {
                 Nothing open.
               </p>
             ) : (
-              <ul className="divide-y">
+              <ul className="divide-y divide-border/60">
                 {topRecs.map((rec) => (
                   <RecommendationRow key={rec.id} rec={rec} />
                 ))}
@@ -436,37 +448,65 @@ function RecentRunRow({ run }: { run: RunListItem }) {
 
 function RecommendationRow({ rec }: { rec: Recommendation }) {
   const acc = PILLAR_ACCENT[rec.pillar];
+  const dueDate = rec.dueAt
+    ? new Date(rec.dueAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    : null;
+
   return (
     <li>
       <Link
         href="/recommendations"
-        className="flex items-start gap-3 px-6 py-3 hover:bg-muted/40 transition-colors"
+        className="group flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-muted/30"
       >
         <span
-          className="mt-1 inline-flex h-5 items-center rounded-md px-1.5 text-[10px] font-medium uppercase tracking-wide"
-          style={{ background: acc.soft, color: acc.color }}
-        >
-          {acc.label}
-        </span>
+          aria-hidden
+          className="size-1.5 rounded-full shrink-0"
+          style={{ background: acc.color }}
+        />
+
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug">{rec.title}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>Impact {rec.impact}</span>
-            <span>·</span>
-            <span>Effort {rec.effort}</span>
-            {rec.dueAt && (
+          <p className="text-sm font-medium leading-snug text-foreground truncate">
+            {rec.title}
+          </p>
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>{acc.label}</span>
+            <span aria-hidden className="text-border">
+              ·
+            </span>
+            <span className="capitalize">{rec.impact} impact</span>
+            <span aria-hidden className="text-border">
+              ·
+            </span>
+            <span>{rec.effort} effort</span>
+            {dueDate && (
               <>
-                <span>·</span>
-                <span>Due {new Date(rec.dueAt).toLocaleDateString()}</span>
+                <span aria-hidden className="text-border">
+                  ·
+                </span>
+                <span>Due {dueDate}</span>
               </>
             )}
             {rec.status === "in_progress" && (
-              <Badge variant="outline" className="ml-1 h-4 px-1 text-[10px]">
-                In progress
-              </Badge>
+              <>
+                <span aria-hidden className="text-border">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1 text-[color:var(--warning)]">
+                  <span
+                    className="size-1.5 rounded-full"
+                    style={{ background: "var(--warning)" }}
+                  />
+                  In progress
+                </span>
+              </>
             )}
           </div>
         </div>
+
+        <ChevronRight className="size-4 text-muted-foreground/40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-foreground shrink-0" />
       </Link>
     </li>
   );

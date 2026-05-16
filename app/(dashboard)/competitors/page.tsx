@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
   BellOff,
@@ -30,9 +30,10 @@ import { EmptyState } from "@/components/visibility/empty-state";
 import { PillarSkeleton } from "@/components/visibility/pillar-skeleton";
 import { cn } from "@/lib/utils";
 import type { CompetitorScores } from "@/lib/api/competitors";
+import COMPANY from "@/lib/mocks/data/company.json";
 
-const TARGET_DOMAIN = "octify.ai";
-const TARGET_LABEL = "Octify AI";
+const TARGET_DOMAIN = COMPANY.brand.domain;
+const TARGET_LABEL = COMPANY.brand.fullName;
 
 function fmtDate(iso: string): string {
   const d = new Date(iso);
@@ -46,13 +47,21 @@ export default function CompetitorsPage() {
   const remove = useRemoveFromWatchlist();
   const toggle = useToggleWatchlistAlert();
   const [newDomain, setNewDomain] = useState("");
-  const [selected, setSelected] = useState<string[]>([
-    "datadog.com",
-    "newrelic.com",
-    "honeycomb.io",
-  ]);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const allCompetitors = useMemo(() => data?.scores ?? [], [data]);
+
+  useEffect(() => {
+    if (selected.length === 0 && allCompetitors.length > 0) {
+      setSelected(
+        allCompetitors
+          .filter((c) => c.domain !== TARGET_DOMAIN)
+          .slice(0, 3)
+          .map((c) => c.domain)
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allCompetitors]);
   const us = useMemo(
     () => allCompetitors.find((c) => c.domain === TARGET_DOMAIN),
     [allCompetitors]
@@ -97,12 +106,21 @@ export default function CompetitorsPage() {
   };
 
   const trackedDomains = [TARGET_DOMAIN, ...visible.map((c) => c.domain)];
+  const palette = [
+    "var(--pillar-search)",
+    "var(--pillar-understanding)",
+    "var(--warning)",
+    "var(--negative)",
+    "var(--chart-2)",
+    "var(--chart-5)",
+  ];
   const colors: Record<string, string> = {
-    "octify.ai": "var(--pillar-ai)",
-    "datadog.com": "var(--pillar-search)",
-    "newrelic.com": "var(--pillar-understanding)",
-    "honeycomb.io": "var(--warning)",
-    "grafana.com": "var(--negative)",
+    [TARGET_DOMAIN]: "var(--primary)",
+    ...Object.fromEntries(
+      allCompetitors
+        .filter((c) => c.domain !== TARGET_DOMAIN)
+        .map((c, i) => [c.domain, palette[i % palette.length]])
+    ),
   };
   const dateLabels = data.mentionTimeline.map((t) => fmtDate(t.date));
 
@@ -184,7 +202,7 @@ export default function CompetitorsPage() {
       <Section
         title="Pillar comparison"
         actions={
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1">
             {allCompetitors
               .filter((c) => c.domain !== TARGET_DOMAIN)
               .map((c) => {
@@ -193,15 +211,19 @@ export default function CompetitorsPage() {
                   <button
                     key={c.domain}
                     onClick={() => toggleSelected(c.domain)}
+                    aria-pressed={active}
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+                      "group inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium transition-all",
                       active
-                        ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
+                        ? "bg-card text-foreground ring-1 ring-inset ring-border shadow-[0_1px_0_rgba(15,23,42,0.04)]"
+                        : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/40"
                     )}
                   >
                     <span
-                      className="size-2 rounded-full"
+                      className={cn(
+                        "size-1.5 rounded-full transition-opacity",
+                        active ? "opacity-100" : "opacity-40 group-hover:opacity-80"
+                      )}
                       style={{ background: colors[c.domain] ?? "currentColor" }}
                     />
                     {c.name}
@@ -215,8 +237,8 @@ export default function CompetitorsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[11px] uppercase tracking-wide text-muted-foreground border-b">
-                <th className="text-left font-medium px-5 py-3">Competitor</th>
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground/70 border-b border-border/50">
+                <th className="text-left font-medium px-6 py-3">Competitor</th>
                 <th className="text-right font-medium px-3 py-3">Search</th>
                 <th className="text-right font-medium px-3 py-3">AI Rec.</th>
                 <th className="text-right font-medium px-3 py-3">
@@ -224,7 +246,7 @@ export default function CompetitorsPage() {
                 </th>
                 <th className="text-right font-medium px-3 py-3">Overall</th>
                 <th className="text-right font-medium px-3 py-3">Δ 30d</th>
-                <th className="text-right font-medium px-5 py-3 hidden md:table-cell">
+                <th className="text-right font-medium px-6 py-3 hidden md:table-cell">
                   Citations
                 </th>
               </tr>
@@ -350,7 +372,7 @@ export default function CompetitorsPage() {
                         className="h-full transition-[width] duration-700"
                         style={{
                           width: `${(r.usOnly / total) * 100}%`,
-                          background: "var(--pillar-ai)",
+                          background: "var(--primary)",
                         }}
                       />
                       <div
@@ -440,7 +462,7 @@ export default function CompetitorsPage() {
                     title={w.alertOnDrop ? "Alerts on" : "Alerts off"}
                   >
                     {w.alertOnDrop ? (
-                      <Bell className="size-3.5 text-[color:var(--pillar-ai)]" />
+                      <Bell className="size-3.5 text-primary" />
                     ) : (
                       <BellOff className="size-3.5 text-muted-foreground" />
                     )}
@@ -475,21 +497,34 @@ function RadarRow({
   return (
     <tr
       className={cn(
-        "border-b last:border-b-0 transition-colors",
-        isTarget ? "bg-[color:var(--pillar-ai-soft)]/40" : "hover:bg-muted/40"
+        "border-b border-border/40 last:border-b-0 transition-colors group",
+        isTarget ? "bg-primary/[0.04]" : "hover:bg-muted/30"
       )}
     >
-      <td className="px-5 py-3.5">
-        <div className="flex items-center gap-2">
-          {isTarget && (
-            <span className="inline-flex items-center justify-center size-5 rounded bg-[color:var(--pillar-ai)] text-white text-[10px] font-semibold">
-              You
-            </span>
-          )}
-          <div>
-            <p className="font-medium text-sm">{row.name}</p>
-            <p className="text-[11px] text-muted-foreground">{row.domain}</p>
+      <td className="px-6 py-4 relative">
+        {isTarget && (
+          <span
+            aria-hidden
+            className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
+            style={{ background: "var(--primary)" }}
+          />
+        )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-sm truncate text-foreground">
+              {row.name}
+            </p>
+            {isTarget && (
+              <span
+                className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] bg-primary/10 text-primary"
+              >
+                You
+              </span>
+            )}
           </div>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {row.domain}
+          </p>
         </div>
       </td>
       <ScoreCell
@@ -505,10 +540,10 @@ function RadarRow({
         compare={compareTo?.aiUnderstanding}
       />
       <ScoreCell value={row.overall} compare={compareTo?.overall} bold />
-      <td className="px-3 py-3.5 text-right">
+      <td className="px-3 py-4 text-right">
         <span
           className={cn(
-            "inline-flex items-center gap-0.5 text-xs font-medium tabular-nums",
+            "inline-flex items-center justify-end gap-0.5 text-xs font-medium tabular-nums",
             row.delta > 0
               ? "text-[color:var(--positive)]"
               : row.delta < 0
@@ -525,8 +560,27 @@ function RadarRow({
           {row.delta.toFixed(1)}
         </span>
       </td>
-      <td className="px-5 py-3.5 text-right tabular-nums hidden md:table-cell">
-        <span className="text-sm font-medium">{row.citationShare}%</span>
+      <td className="px-6 py-4 text-right hidden md:table-cell">
+        <div className="inline-flex flex-col items-end gap-1">
+          <span className="text-sm font-medium tabular-nums text-foreground">
+            {row.citationShare}%
+          </span>
+          <span
+            aria-hidden
+            className="block h-1 w-16 rounded-full bg-muted overflow-hidden"
+          >
+            <span
+              className="block h-full rounded-full"
+              style={{
+                width: `${Math.min(100, (row.citationShare / 30) * 100)}%`,
+                background: isTarget
+                  ? "var(--primary)"
+                  : "var(--muted-foreground)",
+                opacity: isTarget ? 1 : 0.45,
+              }}
+            />
+          </span>
+        </div>
       </td>
     </tr>
   );
@@ -541,17 +595,25 @@ function ScoreCell({
   compare?: number;
   bold?: boolean;
 }) {
-  const beats = compare != null && value > compare;
+  const diff = compare != null ? value - compare : null;
+  const beats = diff != null && diff > 0.05;
   return (
-    <td className="px-3 py-3.5 text-right tabular-nums">
-      <span className={cn("text-sm", bold ? "font-semibold" : "font-medium")}>
-        {value.toFixed(1)}
-      </span>
-      {beats && (
-        <span className="ml-1.5 inline-flex items-center px-1 rounded text-[9px] font-semibold bg-[color:var(--negative)]/10 text-[color:var(--negative)]">
-          BEATS US
+    <td className="px-3 py-4 text-right tabular-nums">
+      <div className="inline-flex flex-col items-end leading-tight">
+        <span
+          className={cn(
+            "text-sm text-foreground",
+            bold ? "font-semibold" : "font-medium"
+          )}
+        >
+          {value.toFixed(1)}
         </span>
-      )}
+        {beats && (
+          <span className="mt-0.5 inline-flex items-center gap-0.5 text-[10px] font-medium tabular-nums text-[color:var(--negative)]/85">
+            <TrendingUp className="size-2.5" />+{diff!.toFixed(1)}
+          </span>
+        )}
+      </div>
     </td>
   );
 }

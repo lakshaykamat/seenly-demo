@@ -76,7 +76,7 @@ export function ProcessingStages({
       <div className="mt-6 min-h-[88px]">
         <h2 className="text-xl md:text-2xl font-semibold text-foreground leading-snug">
           {isComplete && active.key === "done"
-            ? `Ready — Seenly score ${finalScore.toFixed(1)} · routing to dashboard…`
+            ? `Ready — Rankly score ${finalScore.toFixed(1)} · routing to dashboard…`
             : labelText}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground transition-opacity">

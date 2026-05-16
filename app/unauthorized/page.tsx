@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
             href="/"
             className="text-xl font-semibold tracking-tight text-primary mb-4 block"
           >
-            Seenly
+            Rankly
           </Link>
           <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
             <svg

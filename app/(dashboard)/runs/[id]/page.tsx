@@ -578,7 +578,7 @@ export default function RunDetailPage({
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <ScoreCard
-              title="Seenly Score"
+              title="Rankly Score"
               score={run.scores?.seenly_score_final ?? null}
               suffix="/100"
             />

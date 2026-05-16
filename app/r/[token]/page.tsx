@@ -22,7 +22,7 @@ export default async function SharedReportPage({
             href="/"
             className="text-lg font-semibold tracking-tight text-primary"
           >
-            Seenly
+            Rankly
           </Link>
           <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
             <span className="size-1.5 rounded-full bg-[color:var(--positive)]" />
@@ -35,7 +35,7 @@ export default async function SharedReportPage({
         <footer className="pt-8 border-t text-center text-xs text-muted-foreground">
           Shared from{" "}
           <Link href="/" className="text-primary hover:underline">
-            Seenly
+            Rankly
           </Link>{" "}
           · {report.subtitle}
         </footer>

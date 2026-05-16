@@ -21,8 +21,8 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Seenly",
-  description: "Seenly — analytics and reporting platform",
+  title: "Rankly",
+  description: "Rankly — analytics and reporting platform",
 };
 
 export default function RootLayout({
