@@ -1,3 +1,13 @@
+export function usernameFromEmail(email: string | null | undefined): string {
+  if (!email) return "User";
+  const local = email.split("@")[0] ?? "";
+  return local
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
 /**
  * Lightweight relative-time formatter. No external deps.
  * Returns strings like "2 minutes ago", "3 hours ago", "yesterday".

@@ -54,10 +54,7 @@ export function TenantHeader() {
                     <p className="text-sm font-medium leading-none">
                       {user?.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {user?.email}
-                    </p>
-                    <p className="text-xs text-muted-foreground capitalize mt-1">
+                    <p className="text-xs text-muted-foreground capitalize">
                       {user?.role} · {user?.plan} plan
                     </p>
                   </div>

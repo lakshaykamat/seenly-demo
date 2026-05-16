@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usernameFromEmail } from "@/lib/format";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -522,7 +523,7 @@ function FilterBar({
           <SelectItem value="unassigned">Unassigned</SelectItem>
           {members.map((m) => (
             <SelectItem key={m.id} value={m.id}>
-              {m.email.split("@")[0]}
+              {usernameFromEmail(m.email)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -1039,7 +1040,7 @@ function RowMenu({
           </DropdownMenuItem>
           {members.map((m) => (
             <DropdownMenuItem key={m.id} onClick={() => onAssign(rec.id, m.id)}>
-              {m.email.split("@")[0]}
+              {usernameFromEmail(m.email)}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
@@ -1248,7 +1249,7 @@ function DetailDrawer({
                   </DropdownMenuItem>
                   {members.map((m) => (
                     <DropdownMenuItem key={m.id} onClick={() => onAssign(m.id)}>
-                      {m.email}
+                      {usernameFromEmail(m.email)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>

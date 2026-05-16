@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Member } from "@/types";
+import { usernameFromEmail } from "@/lib/format";
 
 export function MemberList() {
   const { user } = useAuth();
@@ -73,16 +74,16 @@ export function MemberList() {
       <table className="w-full text-sm">
         <thead className="bg-muted/50">
           <tr>
-            <th className="text-left font-medium px-4 py-2.5">Email</th>
+            <th className="text-left font-medium px-4 py-2.5">Name</th>
             <th className="text-left font-medium px-4 py-2.5">Role</th>
             <th className="text-left font-medium px-4 py-2.5">Joined</th>
           </tr>
         </thead>
         <tbody>
-          {members.map((m) => (
+          {members.slice(0, 1).map((m) => (
             <tr key={m.id} className="border-t">
               <td className="px-4 py-2.5">
-                {m.email}
+                {m.id === user?.id ? user.name : usernameFromEmail(m.email)}
                 {m.id === user?.id && (
                   <span className="text-xs text-muted-foreground ml-1">
                     (you)
